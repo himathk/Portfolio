@@ -11,10 +11,10 @@ export default function Manifesto() {
       <span className="rail mono">(ABOUT)</span>
 
       <p className="manifesto__text" data-split="words">
-        I design things and then I build them. Both halves, same project, most of the time. It means
-        less gets lost on the way from the file to the browser. Mostly product interfaces, with brand
-        and motion work around the edges. I would rather over-animate than ship something{' '}
-        <em className="serif">flat.</em>
+        I work on enterprise interfaces, the kind with twelve fields on screen and a user
+        who&apos;s been staring at them since <em className="serif">8am.</em> Design and build, both
+        halves, so the thing in the browser is the thing in the file. Brand and motion work around
+        the edges.
       </p>
 
       <div className="manifesto__grid">

@@ -27,8 +27,9 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'Himath Kariyawasam · Design, Motion & Code',
+  // trimmed to two sentences: search results cut off around 155 characters
   description:
-    'Himath Kariyawasam designs and builds bold, heavily animated interfaces.',
+    "I work on enterprise interfaces, the kind with twelve fields on screen and a user who's been staring at them since 8am. Design and build, both halves.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
