@@ -19,6 +19,11 @@ export const pointer = { x: 0, y: 0, tx: 0, ty: 0, px: 0, py: 0 };
 /** Scroll progress through the document, 0 at the top, 1 at the bottom. */
 export const view = { scrollP: 0 };
 
+/** Accent override for the WebGL object. Work rows set this on hover so the
+ *  3D object picks up the colour of whatever project you are pointing at;
+ *  null hands control back to the scroll keyframe track. */
+export const accent: { hex: string | null } = { hex: null };
+
 const subs = new Set<Tick>();
 let rafId = 0;
 let live = false;
@@ -31,6 +36,10 @@ function onPointerMove(e: PointerEvent) {
 }
 
 function frame(now: number) {
+  // Reschedule before running subscribers, not after. With this at the end, one
+  // subscriber throwing would stop the loop permanently for every other one too.
+  rafId = requestAnimationFrame(frame);
+
   const t = now * 0.001;
 
   pointer.x = lerp(pointer.x, pointer.tx, 0.06);
@@ -40,8 +49,6 @@ function frame(now: number) {
   view.scrollP = max > 0 ? clamp01(window.scrollY / max) : 0;
 
   for (const fn of subs) fn(t);
-
-  rafId = requestAnimationFrame(frame);
 }
 
 export function subscribe(fn: Tick): () => void {

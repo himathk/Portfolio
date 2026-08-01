@@ -2,39 +2,62 @@
 
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { subscribe, pointer, lerp } from '@/lib/motion';
+import { subscribe, pointer, accent, lerp } from '@/lib/motion';
 
-/** `href` is optional: rows with one render as links, the rest stay inert. */
-const PROJECTS: {
-  n: string;
-  title: string;
-  cat: string;
-  yr: string;
-  art: string;
-  href?: string;
-}[] = [
+/** Aegis is pulled out of the list: it is the project the whole site leads with. */
+const FEATURED = {
+  title: 'Aegis',
+  desc: 'Knowledge-graph investigative AI. I led the ML side and designed the interface.',
+  role: 'ML Lead & UI/UX',
+  yr: '2025-26',
+  href: 'https://info.aegisseeker.com',
+  art: 'g1',
+  accent: '#FF4D1C',
+};
+
+const PROJECTS = [
   {
-    n: '01',
-    title: 'Aegis',
-    cat: 'Investigative AI · ML Lead & UI/UX',
-    yr: '2025-26',
-    art: 'g1',
-    href: 'https://info.aegisseeker.com',
+    n: '02',
+    title: 'InfoIns',
+    cat: 'Insurance Platform · Design & Frontend',
+    yr: 'Since 2023',
+    art: 'g2',
+    accent: '#3EFFC8',
   },
-  { n: '02', title: 'InfoIns', cat: 'Insurance Platform · Design & Frontend', yr: 'Since 2023', art: 'g2' },
-  { n: '03', title: 'SnapVibe', cat: 'Photobooth Web · UI/UX & Frontend', yr: '2026', art: 'g3' },
-  { n: '04', title: 'JewishChat', cat: 'Community Groups · Lead Designer', yr: '2026', art: 'g4' },
-  { n: '05', title: 'Heliez LK', cat: 'Cake Artistry · Design & Dev Lead', yr: '2026', art: 'g5' },
+  {
+    n: '03',
+    title: 'SnapVibe',
+    cat: 'Photobooth Web · UI/UX & Frontend',
+    yr: '2026',
+    art: 'g3',
+    accent: '#FF2D78',
+  },
+  {
+    n: '04',
+    title: 'JewishChat',
+    cat: 'Community Groups · Lead Designer',
+    yr: '2026',
+    art: 'g4',
+    accent: '#4CC9FF',
+  },
+  {
+    n: '05',
+    title: 'Heliez LK',
+    cat: 'Cake Artistry · Design & Dev Lead',
+    yr: '2026',
+    art: 'g5',
+    accent: '#FFB03E',
+  },
 ];
 
 export default function Work() {
   const preview = useRef<HTMLDivElement>(null);
-  const list = useRef<HTMLUListElement>(null);
+  const section = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const pv = preview.current;
-    const ul = list.current;
-    if (!pv || !ul) return;
+    const sec = section.current;
+    if (!pv || !sec) return;
 
     // Centring lives in GSAP's transform (xPercent/yPercent) so the frame loop
     // can own left/top without the two fighting over the same property.
@@ -45,7 +68,21 @@ export default function Work() {
       arts.set(el.dataset.art ?? '', el);
     });
 
-    const rows = [...ul.querySelectorAll<HTMLElement>('.work-row')];
+    // Accent applies to the featured block too, but the floating preview does
+    // not: that block already shows its artwork inline.
+    const tinted = [...sec.querySelectorAll<HTMLElement>('[data-accent]')];
+    const tintOn = (e: Event) => {
+      accent.hex = (e.currentTarget as HTMLElement).dataset.accent ?? null;
+    };
+    const tintOff = () => {
+      accent.hex = null;
+    };
+    tinted.forEach((el) => {
+      el.addEventListener('mouseenter', tintOn);
+      el.addEventListener('mouseleave', tintOff);
+    });
+
+    const rows = [...sec.querySelectorAll<HTMLElement>('.work-row')];
     const enter = (e: Event) => {
       const art = arts.get((e.currentTarget as HTMLElement).dataset.art ?? '');
       if (!art) return;
@@ -57,7 +94,6 @@ export default function Work() {
     const leave = () => {
       gsap.to(pv, { opacity: 0, duration: 0.35, ease: 'power2.out' });
     };
-
     rows.forEach((r) => {
       r.addEventListener('mouseenter', enter);
       r.addEventListener('mouseleave', leave);
@@ -74,15 +110,20 @@ export default function Work() {
 
     return () => {
       unsubscribe();
+      tinted.forEach((el) => {
+        el.removeEventListener('mouseenter', tintOn);
+        el.removeEventListener('mouseleave', tintOff);
+      });
       rows.forEach((r) => {
         r.removeEventListener('mouseenter', enter);
         r.removeEventListener('mouseleave', leave);
       });
+      accent.hex = null;
     };
   }, []);
 
   return (
-    <section className="work" id="work">
+    <section className="work" id="work" ref={section}>
       <div className="sec-head">
         <span className="rail mono">(WORK)</span>
         <h2 className="sec-title" data-split="chars">
@@ -91,40 +132,39 @@ export default function Work() {
         <span className="mono sec-count">Five selected</span>
       </div>
 
-      <ul className="worklist" ref={list}>
-        {PROJECTS.map((p) => {
-          const cells = (
-            <>
+      <a
+        className="feature"
+        href={FEATURED.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cursor="view"
+        data-accent={FEATURED.accent}
+      >
+        <div className="feature__body">
+          <div className="feature__meta mono">
+            <span>01 / Featured</span>
+            <span>
+              {FEATURED.role} · {FEATURED.yr}
+            </span>
+          </div>
+          <h3 className="feature__title">{FEATURED.title}</h3>
+          <p className="feature__desc">{FEATURED.desc}</p>
+          <span className="feature__cta mono">info.aegisseeker.com ↗</span>
+        </div>
+        <div className={`feature__art ${FEATURED.art}`} aria-hidden="true" />
+      </a>
+
+      <ul className="worklist">
+        {PROJECTS.map((p) => (
+          <li key={p.n}>
+            <div className="work-row" data-art={p.art} data-accent={p.accent} data-cursor="view">
               <span className="work-row__n mono">{p.n}</span>
               <h3 className="work-row__title">{p.title}</h3>
               <span className="work-row__cat mono">{p.cat}</span>
               <span className="work-row__yr mono">{p.yr}</span>
-            </>
-          );
-
-          return (
-            <li key={p.n}>
-              {p.href ? (
-                // the row itself is the anchor, so it stays keyboard-focusable and
-                // reads as one link rather than an empty click-catching overlay
-                <a
-                  className="work-row work-row--link"
-                  href={p.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-art={p.art}
-                  data-cursor="view"
-                >
-                  {cells}
-                </a>
-              ) : (
-                <div className="work-row" data-art={p.art} data-cursor="view">
-                  {cells}
-                </div>
-              )}
-            </li>
-          );
-        })}
+            </div>
+          </li>
+        ))}
       </ul>
 
       {/* cursor-following preview */}

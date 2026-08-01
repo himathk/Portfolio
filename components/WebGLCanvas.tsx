@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { VERT, FRAG, FRAG_CAGE } from '@/lib/shaders';
-import { subscribe, pointer, view, lerp, clamp01, smooth } from '@/lib/motion';
+import { subscribe, pointer, view, accent, lerp, clamp01, smooth } from '@/lib/motion';
 
 /* Blob choreography across the page (0 = top, 1 = bottom).
    x/y are NORMALISED to the visible frustum at the blob's depth: 1 = the screen
@@ -167,6 +167,7 @@ export default function WebGLCanvas() {
 
     const cA = new THREE.Color();
     const cB = new THREE.Color();
+    const cTarget = new THREE.Color();
 
     const unsubscribe = subscribe((t) => {
       const p = view.scrollP;
@@ -210,9 +211,16 @@ export default function WebGLCanvas() {
       uniforms.uMouse.value.set(pointer.x, pointer.y);
       cageUniforms.uAmp.value = uniforms.uAmp.value * 0.7;
 
-      cA.setStyle(a.c, THREE.LinearSRGBColorSpace);
-      cB.setStyle(b.c, THREE.LinearSRGBColorSpace);
-      uniforms.uColorC.value.copy(cA).lerp(cB, k);
+      // A hovered work row overrides the scroll track's colour. Easing toward a
+      // target rather than assigning it outright means both directions cross-fade.
+      if (accent.hex) {
+        cTarget.setStyle(accent.hex, THREE.LinearSRGBColorSpace);
+      } else {
+        cA.setStyle(a.c, THREE.LinearSRGBColorSpace);
+        cB.setStyle(b.c, THREE.LinearSRGBColorSpace);
+        cTarget.copy(cA).lerp(cB, k);
+      }
+      uniforms.uColorC.value.lerp(cTarget, 0.09);
 
       dust.rotation.y = -t * 0.03 + p * 1.2;
       dust.rotation.x = p * 0.6;
