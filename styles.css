@@ -1,5 +1,5 @@
 /* =========================================================
-   PORTFOLIO SAMPLE — direction study
+   HIMATH KARIYAWASAM — portfolio
    Palette: near-black / warm bone / acid lime
    Type:    Archivo (variable, expanded black) + Instrument Serif + JetBrains Mono
    ========================================================= */
@@ -18,11 +18,9 @@
      clear it should offset by this rather than a hard-coded number */
   --nav-h: calc(var(--pad) * 2 + 1.35rem);
 
-  /* Display sizes stay governed by vw well past 2560 — a low rem ceiling freezes
-     the type while the viewport keeps growing, which is what stranded the hero
-     and the contact headline on 2K/HD screens. */
-  /* sized against the longest hero line — "KARIYAWASAM" runs ~9.2em wide, so the
-     15.5vw that suited a 5-letter surname would have overflowed every viewport */
+  /* Governed by vw well past 2560 — a low rem ceiling would freeze the type while
+     the viewport keeps growing. --fs-mega is sized against the longest hero line:
+     "KARIYAWASAM" runs ~9.2em wide, so it needs a lower vw term than the rest. */
   --fs-mega: clamp(1.75rem, 9vw, 22rem);
   --fs-huge: clamp(2.4rem, 9vw, 20rem);
   --fs-big:  clamp(1.6rem, 4.6vw, 10rem);
@@ -37,8 +35,8 @@
 @supports (height: 1svh){
   :root{
     /* Tuned so the height term only bites on genuinely short viewports: the hero
-       block runs ~1.6x the font size plus ~230px of furniture, so 37svh still
-       clears 1440px-tall ultrawides while catching phone landscape. */
+       block runs ~1.6x the font size plus ~230px of furniture, so the svh term
+       clears tall desktops while still catching phone landscape. */
     --fs-mega:    clamp(1.75rem, min(9vw, 22svh), 22rem);
     --fs-contact: clamp(1.85rem, min(9.2vw, 25svh), 22rem);
   }
@@ -376,43 +374,6 @@ main{ position:relative; z-index:2; }
 
 .gallery__end{ flex:0 0 auto; padding-inline:clamp(2rem,8vw,10rem); }
 .gallery__end h3{ font-size:clamp(2.4rem,9vw,11rem); color:var(--acid); text-transform:none; letter-spacing:-.02em; line-height:.9; }
-
-/* =========================================================
-   STATS
-   ========================================================= */
-.stats{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
-  gap:1px; background:var(--line); border-block:1px solid var(--line);
-}
-.stat{ background:var(--bg); padding:clamp(1.8rem,4vw,3.5rem) var(--pad); }
-.stat b{
-  display:block; font-size:clamp(3rem,9vw,12rem); font-weight:900;
-  font-variation-settings:'wdth' 118,'wght' 900; line-height:.85; letter-spacing:-.05em;
-  color:var(--acid);
-}
-.stat span{ display:block; margin-top:.9rem; color:var(--fg-dim); }
-
-/* =========================================================
-   AWARDS
-   ========================================================= */
-.awards{ padding:clamp(5rem,12vw,11rem) 0; }
-.awardlist{ border-top:1px solid var(--line); }
-.awardlist li{
-  display:grid; grid-template-columns:5.5rem 1fr auto; gap:1.2rem; align-items:baseline;
-  padding:clamp(1rem,2.2vw,1.7rem) var(--pad); border-bottom:1px solid var(--line);
-  transition:background .45s var(--ease), padding-left .45s var(--ease);
-}
-.awardlist li:hover{ background:var(--bg-2); padding-left:calc(var(--pad) + 1.2rem); }
-.awardlist li .mono{ color:var(--fg-dim); }
-.awardlist li:hover .mono:first-child{ color:var(--acid); }
-.awardlist h3{
-  font-size:clamp(1.1rem,2.9vw,4.2rem); text-transform:none; letter-spacing:-.03em;
-  font-variation-settings:'wdth' 100,'wght' 800; line-height:1.05;
-}
-@media (max-width:700px){
-  .awardlist li{ grid-template-columns:1fr auto; }
-  .awardlist h3{ grid-column:1/-1; order:2; }
-}
 
 /* =========================================================
    EDUCATION TIMELINE

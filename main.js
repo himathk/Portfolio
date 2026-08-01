@@ -1,5 +1,5 @@
 /* =========================================================
-   PORTFOLIO SAMPLE — main.js
+   HIMATH KARIYAWASAM — portfolio
    Three.js (r149 UMD) + GSAP/ScrollTrigger + Lenis
    ========================================================= */
 
@@ -524,12 +524,6 @@ function scrollAnims() {
     scrollTrigger: { trigger: '.worklist', start: 'top 82%' }
   });
 
-  // award rows
-  gsap.from('.awardlist li', {
-    x: -40, opacity: 0, duration: .9, ease: 'expo.out', stagger: .06,
-    scrollTrigger: { trigger: '.awardlist', start: 'top 82%' }
-  });
-
   // Pinned horizontal gallery — desktop/tablet only. On touch-sized screens the
   // pin fights native scrolling, so the CSS hands the section a real swipeable
   // overflow container instead. matchMedia sets up/tears down across the breakpoint.
@@ -561,17 +555,6 @@ function scrollAnims() {
   gsap.from('.contact__title .line__i', {
     yPercent: 115, duration: 1.3, ease: 'expo.out', stagger: .1,
     scrollTrigger: { trigger: '.contact', start: 'top 72%' }
-  });
-
-  // counters
-  document.querySelectorAll('[data-count]').forEach(el => {
-    const end = +el.dataset.count;
-    const obj = { v: 0 };
-    gsap.to(obj, {
-      v: end, duration: 2, ease: 'power2.out',
-      scrollTrigger: { trigger: el, start: 'top 88%' },
-      onUpdate: () => { el.textContent = Math.round(obj.v); }
-    });
   });
 
   // marquee reacts to scroll velocity
