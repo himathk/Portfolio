@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Himath Kariyawasam — Design, Motion & Code</title>
+<meta name="description" content="Himath Kariyawasam — design, motion and code. Bold interfaces with heavy animation.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-loading">
+
+<!-- ============ PRELOADER ============ -->
+<div class="loader" id="loader">
+  <div class="loader__inner">
+    <div class="loader__row">
+      <span class="mono">[ INITIALISING ]</span>
+      <span class="mono loader__pct" id="loaderPct">000</span>
+    </div>
+    <div class="loader__bar"><i id="loaderBar"></i></div>
+    <div class="loader__words" id="loaderWords">
+      <span>MOTION</span><span>CODE</span><span>CRAFT</span>
+    </div>
+  </div>
+  <div class="loader__curtain"></div>
+</div>
+
+<!-- ============ WEBGL LAYER (fixed, spans whole page) ============ -->
+<canvas id="gl"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<!-- ============ CURSOR ============ -->
+<div class="cursor" id="cursor"><span class="cursor__label" id="cursorLabel"></span></div>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <a href="#top" class="nav__mark" data-cursor="hover">
+    <span class="nav__mark-glyph">HK</span>
+    <span class="mono nav__mark-txt">HIMATH KARIYAWASAM</span>
+  </a>
+  <nav class="nav__links mono">
+    <a href="#work" data-cursor="hover">Work</a>
+    <a href="#designs" data-cursor="hover">Designs</a>
+    <a href="#awards" data-cursor="hover">Awards</a>
+    <a href="#education" data-cursor="hover">Education</a>
+  </nav>
+  <div class="nav__meta mono">
+    <span class="status"><i></i> Open for work</span>
+    <span class="clock" id="clock">--:--:--</span>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <!-- header rule sits under the nav; margin-bottom:auto pins it up there while the
+       rest of the hero stays bottom-aligned -->
+  <div class="hero__eyebrow mono" data-anim="fade">
+    <span>Portfolio</span><span>Vol. 01 — MMXXVI</span>
+  </div>
+
+  <div class="hero__type">
+    <!-- the serif accent rides the SHORT line: KARIYAWASAM needs the full measure -->
+    <h1 class="hero__title">
+      <span class="line line--indent">
+        <span class="line__i">HIM<span class="dot">A</span>TH</span>
+        <em class="serif" data-anim="fade">Design, motion<br>&amp; code</em>
+      </span>
+      <span class="line"><span class="line__i">KARIYAWASAM</span></span>
+    </h1>
+
+    <div class="hero__foot">
+      <p class="hero__blurb" data-anim="fade">
+        I build bold designs with heavy animation that grabs attention and keeps it.
+        I built <em class="serif">the</em> investigation system in Sri Lanka.
+      </p>
+      <a href="#work" class="scrollcue mono" data-cursor="hover">
+        <span>Scroll</span>
+        <svg viewBox="0 0 16 40" aria-hidden="true"><path d="M8 0v34M2 28l6 8 6-8"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="ticker">
+    <div class="ticker__track">
+      <span>CREATIVE DEVELOPER ✦ ART DIRECTION ✦ WEBGL ✦ DESIGN SYSTEMS ✦ MOTION ✦ BRAND ✦</span>
+      <span>CREATIVE DEVELOPER ✦ ART DIRECTION ✦ WEBGL ✦ DESIGN SYSTEMS ✦ MOTION ✦ BRAND ✦</span>
+      <span>CREATIVE DEVELOPER ✦ ART DIRECTION ✦ WEBGL ✦ DESIGN SYSTEMS ✦ MOTION ✦ BRAND ✦</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MANIFESTO ============ -->
+<section class="manifesto" id="about">
+  <span class="rail mono">(ABOUT)</span>
+  <p class="manifesto__text" data-split="words">
+    Nine years turning brand systems into things you can actually
+    <em class="serif">touch.</em> I sit in the gap between the design file and the
+    production build — so nothing gets lost on the way out. Type-led,
+    grid-obsessed, allergic to the default easing curve.
+  </p>
+  <div class="manifesto__grid">
+    <div class="mcard"><span class="mono">01 / Discipline</span><h3>Art Direction<br>&amp; Identity</h3></div>
+    <div class="mcard"><span class="mono">02 / Discipline</span><h3>Interface<br>Design</h3></div>
+    <div class="mcard"><span class="mono">03 / Discipline</span><h3>Motion<br>&amp; WebGL</h3></div>
+    <div class="mcard"><span class="mono">04 / Discipline</span><h3>Front-End<br>Engineering</h3></div>
+  </div>
+</section>
+
+<!-- ============ OUTLINE MARQUEE ============ -->
+<div class="strip" data-strip>
+  <div class="strip__track" data-strip-track>
+    <span class="outline">SELECTED WORK</span><span class="fill">SELECTED WORK</span>
+    <span class="outline">SELECTED WORK</span><span class="fill">SELECTED WORK</span>
+  </div>
+</div>
+
+<!-- ============ WORK ============ -->
+<section class="work" id="work">
+  <div class="sec-head">
+    <span class="rail mono">(WORK)</span>
+    <h2 class="sec-title" data-split="chars">Projects</h2>
+    <span class="mono sec-count">05 — Selected</span>
+  </div>
+
+  <ul class="worklist" id="worklist">
+    <li class="work-row" data-img="g1" data-cursor="view">
+      <span class="work-row__n mono">01</span>
+      <h3 class="work-row__title">Aegis</h3>
+      <span class="work-row__cat mono">Investigative AI · ML Lead &amp; UI/UX</span>
+      <span class="work-row__yr mono">2025—26</span>
+    </li>
+    <li class="work-row" data-img="g2" data-cursor="view">
+      <span class="work-row__n mono">02</span>
+      <h3 class="work-row__title">InfoIns</h3>
+      <span class="work-row__cat mono">Insurance Platform · Design &amp; Frontend</span>
+      <span class="work-row__yr mono">2023—Now</span>
+    </li>
+    <li class="work-row" data-img="g3" data-cursor="view">
+      <span class="work-row__n mono">03</span>
+      <h3 class="work-row__title">SnapVibe</h3>
+      <span class="work-row__cat mono">Photobooth Web · UI/UX &amp; Frontend</span>
+      <span class="work-row__yr mono">2026</span>
+    </li>
+    <li class="work-row" data-img="g4" data-cursor="view">
+      <span class="work-row__n mono">04</span>
+      <h3 class="work-row__title">JewishChat</h3>
+      <span class="work-row__cat mono">Community Groups · Lead Designer</span>
+      <span class="work-row__yr mono">2026</span>
+    </li>
+    <li class="work-row" data-img="g5" data-cursor="view">
+      <span class="work-row__n mono">05</span>
+      <h3 class="work-row__title">Heliez LK</h3>
+      <span class="work-row__cat mono">Cake Artistry · Design &amp; Dev Lead</span>
+      <span class="work-row__yr mono">2026</span>
+    </li>
+  </ul>
+
+  <!-- cursor-following preview -->
+  <div class="preview" id="preview">
+    <div class="preview__i g1"></div><div class="preview__i g2"></div>
+    <div class="preview__i g3"></div><div class="preview__i g4"></div>
+    <div class="preview__i g5"></div>
+  </div>
+</section>
+
+<!-- ============ DESIGNS (pinned horizontal) ============ -->
+<section class="gallery" id="designs">
+  <div class="gallery__pin">
+    <div class="gallery__track" id="galleryTrack">
+      <div class="gallery__intro">
+        <span class="rail mono">(DESIGNS)</span>
+        <h2 class="gallery__title">Visual<br><em class="serif">work</em></h2>
+        <p class="mono">Drag-free horizontal set — posters, type specimens, identity sheets. Scroll to travel →</p>
+      </div>
+
+      <figure class="card g1"><span class="mono">01 / Product</span><h4>Aegis</h4></figure>
+      <figure class="card g2"><span class="mono">02 / Product</span><h4>JewishChat</h4></figure>
+      <figure class="card g3"><span class="mono">03 / Product</span><h4>InfoIns</h4></figure>
+      <figure class="card g4"><span class="mono">04 / Print</span><h4>Posters</h4></figure>
+      <figure class="card g5"><span class="mono">05 / Identity</span><h4>Brands</h4></figure>
+      <figure class="card g6"><span class="mono">06 / Direction</span><h4>Mood Boards</h4></figure>
+
+      <div class="gallery__end">
+        <h3 class="serif">and<br>more.</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section class="stats">
+  <div class="stat"><b data-count="68">0</b><span class="mono">Projects shipped</span></div>
+  <div class="stat"><b data-count="14">0</b><span class="mono">Awards &amp; features</span></div>
+  <div class="stat"><b data-count="9">0</b><span class="mono">Years practising</span></div>
+  <div class="stat"><b data-count="23">0</b><span class="mono">Clients worldwide</span></div>
+</section>
+
+<!-- ============ AWARDS ============ -->
+<section class="awards" id="awards">
+  <div class="sec-head">
+    <span class="rail mono">(RECOGNITION)</span>
+    <h2 class="sec-title" data-split="chars">Awards</h2>
+    <span class="mono sec-count">Selected honours</span>
+  </div>
+
+  <ul class="awardlist">
+    <li data-cursor="hover"><span class="mono">2025</span><h3>Awwwards — Site of the Day</h3><span class="mono">×3</span></li>
+    <li data-cursor="hover"><span class="mono">2025</span><h3>Type Directors Club — Certificate of Excellence</h3><span class="mono">Winner</span></li>
+    <li data-cursor="hover"><span class="mono">2024</span><h3>CSS Design Awards — Website of the Day</h3><span class="mono">Winner</span></li>
+    <li data-cursor="hover"><span class="mono">2024</span><h3>The FWA — FWA of the Day</h3><span class="mono">Winner</span></li>
+    <li data-cursor="hover"><span class="mono">2023</span><h3>Behance — Featured, Graphic Design</h3><span class="mono">Feature</span></li>
+    <li data-cursor="hover"><span class="mono">2023</span><h3>Dribbble — Shot of the Year, Shortlist</h3><span class="mono">Shortlist</span></li>
+  </ul>
+</section>
+
+<!-- ============ EDUCATION ============ -->
+<section class="edu" id="education">
+  <div class="sec-head">
+    <span class="rail mono">(EDUCATION)</span>
+    <h2 class="sec-title" data-split="chars">Studies</h2>
+    <span class="mono sec-count">Formal &amp; otherwise</span>
+  </div>
+
+  <div class="timeline">
+    <i class="timeline__line" id="tlLine"></i>
+
+    <!-- no dates supplied — the eyebrow carries the qualification level instead.
+         Swap these for year ranges when you have them. -->
+    <article class="tl-item">
+      <span class="mono tl-item__yr">Postgraduate</span>
+      <h3>Software Engineering</h3>
+      <p class="mono">IIT.</p>
+    </article>
+
+    <article class="tl-item">
+      <span class="mono tl-item__yr">Diploma</span>
+      <h3>Information &amp; Communication Technology</h3>
+      <p class="mono">NIBM.</p>
+    </article>
+
+    <article class="tl-item">
+      <span class="mono tl-item__yr">Advanced Level</span>
+      <h3>Mathematics Stream</h3>
+      <p class="mono">St. Joseph's College, Colombo 10.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="contact" id="contact">
+  <p class="mono contact__label">(NEXT)</p>
+  <h2 class="contact__title">
+    <span class="line"><span class="line__i">LET'S MAKE</span></span>
+    <span class="line"><span class="line__i">SOMETHING <em class="serif">loud</em></span></span>
+  </h2>
+
+  <a href="mailto:mghgkariyawasam@gmail.com" class="magnet" data-cursor="mail">
+    <span class="magnet__in">mghgkariyawasam@gmail.com</span>
+  </a>
+
+  <ul class="socials mono">
+    <li><a href="#" data-cursor="hover">Instagram</a></li>
+    <li><a href="#" data-cursor="hover">Dribbble</a></li>
+    <li><a href="#" data-cursor="hover">GitHub</a></li>
+    <li><a href="#" data-cursor="hover">LinkedIn</a></li>
+    <li><a href="#" data-cursor="hover">Read.cv</a></li>
+  </ul>
+</section>
+
+<footer class="foot mono">
+  <span>© 2026 — Sample layout, placeholder content</span>
+  <span>Built with Three.js + GSAP</span>
+  <span id="clock2">--:--:--</span>
+</footer>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

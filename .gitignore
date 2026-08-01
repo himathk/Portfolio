@@ -1,0 +1,14 @@
+# dependencies
+node_modules/
+
+# vercel project link (machine-specific, contains project + org ids)
+.vercel/
+
+# local dev server config (absolute paths, not portable)
+.claude/
+
+# os junk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
