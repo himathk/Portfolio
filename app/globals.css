@@ -14,9 +14,10 @@
   --line:    rgba(236,234,227,.14);
 
   --pad: clamp(1.1rem, 3.2vw, 5.5rem);
-  /* the fixed nav is its padding plus one line of type — anything that has to
-     clear it should offset by this rather than a hard-coded number */
-  --nav-h: calc(var(--pad) * 2 + 1.35rem);
+  /* Where the nav's type actually ends: its top padding plus one line. The nav's
+     bottom padding is empty space, so clearing the full box (--pad * 2) left a
+     visible dead band under the header rule, worst at large --pad. */
+  --nav-h: calc(var(--pad) + 1.35rem);
 
   /* Governed by vw well past 2560 — a low rem ceiling would freeze the type while
      the viewport keeps growing. --fs-mega is sized against the longest hero line:
@@ -89,19 +90,12 @@ h1,h2,h3,h4{
 .loader{ position:fixed; inset:0; z-index:9999; background:var(--bg); display:grid; place-items:end stretch; }
 .loader.is-done{ pointer-events:none; }
 .loader__inner{ width:100%; padding:var(--pad); }
-.loader__row{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:.9rem; }
+/* flex-end, not space-between: the counter is the only child now that the
+   label and cycling words are gone, and it should stay where it was */
+.loader__row{ display:flex; justify-content:flex-end; align-items:flex-end; margin-bottom:.9rem; }
 .loader__pct{ font-size:clamp(2.5rem,9vw,7rem); letter-spacing:-.04em; line-height:.8; font-weight:500; }
 .loader__bar{ height:2px; background:var(--line); position:relative; overflow:hidden; }
 .loader__bar i{ position:absolute; inset:0 auto 0 0; width:0%; background:var(--acid); }
-.loader__words{
-  position:absolute; top:50%; left:var(--pad); transform:translateY(-50%);
-  height:clamp(3rem,10vw,8rem); overflow:hidden;
-}
-.loader__words span{
-  display:block; font-size:clamp(2.6rem,9.5vw,7.5rem); font-weight:900;
-  font-variation-settings:'wdth' 118,'wght' 900;
-  line-height:clamp(3rem,10vw,8rem); letter-spacing:-.04em;
-}
 .loader__curtain{ position:absolute; inset:0; background:var(--acid); transform:translateY(100%); }
 
 /* =========================================================
@@ -187,7 +181,7 @@ main{ position:relative; z-index:2; }
   border-top:1px solid var(--line); padding-top:.7rem;
   /* auto bottom margin eats the free space, holding the rule at the top of the
      hero while the name block stays pinned to the bottom */
-  margin:calc(var(--nav-h) + clamp(.6rem,1.5vw,1.6rem)) var(--pad) auto;
+  margin:calc(var(--nav-h) + clamp(1.1rem,2.2vw,2.4rem)) var(--pad) auto;
   color:var(--fg-dim);
 }
 
@@ -540,7 +534,7 @@ main{ position:relative; z-index:2; }
   /* the eyebrow's own top margin already clears the nav here */
   .hero{ min-height:auto; }
   .hero__type{ padding-bottom:1rem; }
-  .hero__eyebrow{ margin-top:calc(var(--nav-h) + .35rem); margin-bottom:.55rem; }
+  .hero__eyebrow{ margin-top:calc(var(--nav-h) + .9rem); margin-bottom:.55rem; }
   .hero__blurb{ display:none; }
   .gallery__pin{ height:auto; }
   /* height, not width, is the scarce axis here */
