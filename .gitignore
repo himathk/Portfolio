@@ -1,11 +1,25 @@
 # dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# next
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
 
 # vercel project link (machine-specific, contains project + org ids)
 .vercel/
 
 # local dev server config (absolute paths, not portable)
 .claude/
+
+# unoptimised image sources — only processed output gets committed
+_src-images/
+
+# env
+.env*.local
 
 # os junk
 Thumbs.db
