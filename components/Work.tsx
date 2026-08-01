@@ -4,8 +4,23 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { subscribe, pointer, lerp } from '@/lib/motion';
 
-const PROJECTS = [
-  { n: '01', title: 'Aegis', cat: 'Investigative AI · ML Lead & UI/UX', yr: '2025-26', art: 'g1' },
+/** `href` is optional: rows with one render as links, the rest stay inert. */
+const PROJECTS: {
+  n: string;
+  title: string;
+  cat: string;
+  yr: string;
+  art: string;
+  href?: string;
+}[] = [
+  {
+    n: '01',
+    title: 'Aegis',
+    cat: 'Investigative AI · ML Lead & UI/UX',
+    yr: '2025-26',
+    art: 'g1',
+    href: 'https://info.aegisseeker.com',
+  },
   { n: '02', title: 'InfoIns', cat: 'Insurance Platform · Design & Frontend', yr: 'Since 2023', art: 'g2' },
   { n: '03', title: 'SnapVibe', cat: 'Photobooth Web · UI/UX & Frontend', yr: '2026', art: 'g3' },
   { n: '04', title: 'JewishChat', cat: 'Community Groups · Lead Designer', yr: '2026', art: 'g4' },
@@ -77,14 +92,39 @@ export default function Work() {
       </div>
 
       <ul className="worklist" ref={list}>
-        {PROJECTS.map((p) => (
-          <li className="work-row" data-art={p.art} data-cursor="view" key={p.n}>
-            <span className="work-row__n mono">{p.n}</span>
-            <h3 className="work-row__title">{p.title}</h3>
-            <span className="work-row__cat mono">{p.cat}</span>
-            <span className="work-row__yr mono">{p.yr}</span>
-          </li>
-        ))}
+        {PROJECTS.map((p) => {
+          const cells = (
+            <>
+              <span className="work-row__n mono">{p.n}</span>
+              <h3 className="work-row__title">{p.title}</h3>
+              <span className="work-row__cat mono">{p.cat}</span>
+              <span className="work-row__yr mono">{p.yr}</span>
+            </>
+          );
+
+          return (
+            <li key={p.n}>
+              {p.href ? (
+                // the row itself is the anchor, so it stays keyboard-focusable and
+                // reads as one link rather than an empty click-catching overlay
+                <a
+                  className="work-row work-row--link"
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-art={p.art}
+                  data-cursor="view"
+                >
+                  {cells}
+                </a>
+              ) : (
+                <div className="work-row" data-art={p.art} data-cursor="view">
+                  {cells}
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       {/* cursor-following preview */}

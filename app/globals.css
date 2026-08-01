@@ -335,6 +335,15 @@ main{ position:relative; z-index:2; }
 .work-row__n{ color:var(--acid); }
 .work-row__title{ font-size:clamp(2rem,7.5vw,11rem); letter-spacing:-.045em; }
 .work-row__cat,.work-row__yr{ color:var(--fg-dim); }
+
+/* rows that link out get a visible cue: the custom cursor label only exists on
+   pointer devices, so touch users would otherwise have no idea it is clickable */
+.work-row--link .work-row__title::after{
+  content:'\2197';
+  font-size:.36em; vertical-align:super; margin-left:.28em;
+  color:var(--acid); transition:color .45s var(--ease);
+}
+.work-row--link:hover .work-row__title::after{ color:#000; }
 @media (max-width:760px){
   .work-row{ grid-template-columns:auto 1fr; }
   .work-row__cat{ grid-column:2; }

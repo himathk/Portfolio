@@ -51,8 +51,13 @@ export default function Contact() {
         </span>
       </h2>
 
-      <a href="mailto:hello@example.com" className="magnet" data-cursor="mail" ref={magnet}>
-        <span className="magnet__in">hello@example.com</span>
+      <a
+        href="mailto:mghgkariyawasam@gmail.com"
+        className="magnet"
+        data-cursor="mail"
+        ref={magnet}
+      >
+        <span className="magnet__in">mghgkariyawasam@gmail.com</span>
       </a>
 
       <ul className="socials mono">
