@@ -518,6 +518,12 @@ function scrollAnims() {
     scrollTrigger: { trigger: '.manifesto__grid', start: 'top 85%' }
   });
 
+  // toolkit rows
+  gsap.from('.toolrow', {
+    y: 44, opacity: 0, duration: .95, ease: 'expo.out', stagger: .08,
+    scrollTrigger: { trigger: '.toolset', start: 'top 82%' }
+  });
+
   // work rows
   gsap.from('.work-row', {
     yPercent: 45, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: .07,

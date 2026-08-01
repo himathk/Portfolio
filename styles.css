@@ -269,6 +269,44 @@ main{ position:relative; z-index:2; }
 .mcard:hover .mono{ color:rgba(0,0,0,.6); }
 
 /* =========================================================
+   TOOLKIT
+   ========================================================= */
+.toolkit{ padding:clamp(4rem,10vw,9rem) 0 clamp(1rem,3vw,3rem); }
+.toolset{ border-top:1px solid var(--line); }
+
+.toolrow{
+  display:grid; grid-template-columns:minmax(8rem,15%) 1fr;
+  gap:clamp(1rem,3vw,3rem); align-items:start;
+  padding:clamp(1.3rem,2.8vw,2.4rem) var(--pad);
+  border-bottom:1px solid var(--line);
+  transition:background .5s var(--ease);
+}
+.toolrow:hover{ background:var(--bg-2); }
+.toolrow__label{ color:var(--acid); padding-top:.45em; }
+
+.toolrow__items{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:.12em clamp(.7rem,2vw,1.8rem);
+  /* the min term is set by the longest entry — "After Effects" at the featured
+     multiplier still has to clear a 320px viewport without overflowing */
+  --tool-fs:clamp(1.25rem,4.2vw,7rem);
+}
+.tool{
+  font-weight:900; font-variation-settings:'wdth' 112,'wght' 900;
+  font-size:var(--tool-fs);
+  line-height:1.04; letter-spacing:-.035em; text-transform:uppercase;
+  transition:color .35s var(--ease);
+}
+.tool:hover{ color:var(--acid); }
+/* em would resolve against the parent, not the clamped .tool size — scale the
+   variable instead so the featured items are genuinely larger */
+.tool--key{ color:var(--acid); font-size:calc(var(--tool-fs) * 1.18); }
+
+@media (max-width:640px){
+  .toolrow{ grid-template-columns:1fr; gap:.7rem; }
+  .toolrow__label{ padding-top:0; }
+}
+
+/* =========================================================
    OUTLINE STRIP
    ========================================================= */
 .strip{ overflow:hidden; padding:clamp(1rem,2vw,2rem) 0; border-block:1px solid var(--line); }
