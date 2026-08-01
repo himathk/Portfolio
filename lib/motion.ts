@@ -3,7 +3,7 @@
  * Everything that needs a per-frame update (WebGL, cursor, work preview, the
  * velocity-reactive marquee) subscribes here instead of opening its own rAF.
  * subscribe() returns an unsubscribe, and the loop plus its window listeners
- * shut down when the last subscriber leaves — which is what keeps React's
+ * shut down when the last subscriber leaves, which is what keeps React's
  * StrictMode double-mount from leaving a second loop running behind the first.
  */
 

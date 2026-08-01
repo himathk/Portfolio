@@ -1,4 +1,4 @@
-/* No dates supplied — the eyebrow carries the qualification level instead.
+/* No dates supplied, so the eyebrow carries the qualification level instead.
    Swap `level` for year ranges when they're available. */
 const STUDIES = [
   { level: 'Postgraduate', title: 'Software Engineering', where: 'IIT.' },
@@ -18,7 +18,7 @@ export default function Education() {
         <h2 className="sec-title" data-split="chars">
           Studies
         </h2>
-        <span className="mono sec-count">Formal &amp; otherwise</span>
+        <span className="mono sec-count">Where I studied</span>
       </div>
 
       <div className="timeline">

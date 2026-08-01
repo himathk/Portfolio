@@ -7,7 +7,7 @@ import { subscribe, pointer, view, lerp, clamp01, smooth } from '@/lib/motion';
 
 /* Blob choreography across the page (0 = top, 1 = bottom).
    x/y are NORMALISED to the visible frustum at the blob's depth: 1 = the screen
-   edge, 0 = dead centre. World units would look right on one aspect ratio only —
+   edge, 0 = dead centre. World units would look right on one aspect ratio only ,
    on a portrait phone the visible half-width collapses to ~0.9 world units,
    which would throw the object clean off-screen for most of the page. */
 const KEYS = [
@@ -25,12 +25,12 @@ const DEG2RAD = Math.PI / 180;
 /* These hex values are artistic constants feeding custom shader maths, not
  * physical colours. Three's default sRGB->linear conversion on Color would
  * crush them (#3A1E6E loses ~75% of its value) and render the object almost
- * black. Declaring them as already-linear keeps the shader arithmetic — and so
- * the look — identical to the pre-migration build, while output still encodes
+ * black. Declaring them as already-linear keeps the shader arithmetic, and so
+ * the look, identical to the pre-migration build, while output still encodes
  * to sRGB correctly. */
 const raw = (hex: string) => new THREE.Color().setStyle(hex, THREE.LinearSRGBColorSpace);
 
-/** Soft round sprite — untextured points render as hard squares. */
+/** Soft round sprite, untextured points render as hard squares. */
 function dotTexture(): THREE.CanvasTexture {
   const cv = document.createElement('canvas');
   cv.width = cv.height = 64;
@@ -119,7 +119,7 @@ export default function WebGLCanvas() {
     });
     group.add(new THREE.Mesh(cageGeo, cageMat));
 
-    // particle shell — outer radius stays well inside the camera distance so no
+    // particle shell, outer radius stays well inside the camera distance so no
     // sprite drifts close enough to blow up into a big square
     const N = SMALL ? 700 : 1500;
     const pos = new Float32Array(N * 3);

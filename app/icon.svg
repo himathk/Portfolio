@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#08070a"/>
+  <g fill="#D8FF3E">
+    <!-- H -->
+    <rect x="11" y="18" width="6" height="28"/>
+    <rect x="25" y="18" width="6" height="28"/>
+    <rect x="11" y="29" width="20" height="6"/>
+    <!-- K stem -->
+    <rect x="37" y="18" width="6" height="28"/>
+  </g>
+  <!-- K arms -->
+  <g stroke="#D8FF3E" stroke-width="6" fill="none">
+    <path d="M42 32 L53 19"/>
+    <path d="M42 32 L53 45"/>
+  </g>
+</svg>

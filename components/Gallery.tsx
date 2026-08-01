@@ -20,7 +20,7 @@ export default function Gallery() {
               <em className="serif">work</em>
             </h2>
             <p className="mono">
-              Product work, posters, brand sheets and mood boards. Scroll to travel →
+              Product work, posters, brand sheets, mood boards. Keep scrolling →
             </p>
           </div>
 

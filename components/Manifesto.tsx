@@ -11,10 +11,10 @@ export default function Manifesto() {
       <span className="rail mono">(ABOUT)</span>
 
       <p className="manifesto__text" data-split="words">
-        Design, motion and code — usually all three on the same project. I move between leading the
-        design and shipping the front end, across investigative AI, enterprise insurance and
-        community platforms. Everything built bold, animated <em className="serif">heavily,</em> and
-        made to hold attention.
+        I design things and then I build them. Both halves, same project, most of the time. It means
+        less gets lost on the way from the file to the browser. Mostly product interfaces, with brand
+        and motion work around the edges. I would rather over-animate than ship something{' '}
+        <em className="serif">flat.</em>
       </p>
 
       <div className="manifesto__grid">

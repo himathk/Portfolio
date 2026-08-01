@@ -8,7 +8,7 @@ import { splitWords, splitChars } from '@/lib/split';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 /* Splitting rewrites the DOM, and gsap.context().revert() restores inline
- * styles but not structure — so under StrictMode's double-mount a naive split
+ * styles but not structure, so under StrictMode's double-mount a naive split
  * would nest spans inside already-split spans. These stay idempotent by
  * flagging the element and re-reading the existing pieces on a second pass. */
 function ensureWords(el: HTMLElement): HTMLElement[] {
@@ -89,7 +89,7 @@ export default function ScrollAnimations() {
       scrollTrigger: { trigger: '.worklist', start: 'top 82%' },
     });
 
-    // Pinned horizontal gallery — desktop/tablet only. On touch-sized screens
+    // Pinned horizontal gallery, desktop/tablet only. On touch-sized screens
     // the pin fights native scrolling, so the CSS hands the section a real
     // swipeable overflow container instead.
     const mm = gsap.matchMedia();

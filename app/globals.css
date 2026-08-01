@@ -1,5 +1,5 @@
 /* =========================================================
-   HIMATH KARIYAWASAM — portfolio (global stylesheet)
+   HIMATH KARIYAWASAM, portfolio (global stylesheet)
    Palette: near-black / warm bone / acid lime
    Type:    Archivo (variable, expanded black) + Instrument Serif + JetBrains Mono
    ========================================================= */
@@ -19,7 +19,7 @@
      visible dead band under the header rule, worst at large --pad. */
   --nav-h: calc(var(--pad) + 1.35rem);
 
-  /* Governed by vw well past 2560 — a low rem ceiling would freeze the type while
+  /* Governed by vw well past 2560, a low rem ceiling would freeze the type while
      the viewport keeps growing. --fs-mega is sized against the longest hero line:
      "KARIYAWASAM" runs ~9.2em wide, so it needs a lower vw term than the rest. */
   --fs-mega: clamp(1.75rem, 9vw, 22rem);
@@ -280,7 +280,7 @@ main{ position:relative; z-index:2; }
 
 .toolrow__items{
   display:flex; flex-wrap:wrap; align-items:baseline; gap:.12em clamp(.7rem,2vw,1.8rem);
-  /* the min term is set by the longest entry — "After Effects" at the featured
+  /* the min term is set by the longest entry, "After Effects" at the featured
      multiplier still has to clear a 320px viewport without overflowing */
   --tool-fs:clamp(1.25rem,4.2vw,7rem);
 }
@@ -291,7 +291,7 @@ main{ position:relative; z-index:2; }
   transition:color .35s var(--ease);
 }
 .tool:hover{ color:var(--acid); }
-/* em would resolve against the parent, not the clamped .tool size — scale the
+/* em would resolve against the parent, not the clamped .tool size, scale the
    variable instead so the featured items are genuinely larger */
 .tool--key{ color:var(--acid); font-size:calc(var(--tool-fs) * 1.18); }
 
@@ -433,13 +433,13 @@ main{ position:relative; z-index:2; }
    ========================================================= */
 .contact{ padding:clamp(5rem,14vw,12rem) var(--pad) clamp(4rem,8vw,7rem); text-align:center; }
 .contact__label{ color:var(--acid); margin-bottom:clamp(1.5rem,4vw,3rem); }
-/* "SOMETHING loud" is the longest line on the page — it needs its own,
+/* "SOMETHING loud" is the longest line on the page, it needs its own,
    smaller scale than the hero name or it runs off the viewport. */
 .contact__title{ font-size:var(--fs-contact); line-height:.86; letter-spacing:-.05em; }
 .contact__title .serif{ color:var(--acid); text-transform:none; letter-spacing:-.01em; }
 /* let the italic descender breathe inside the overflow-hidden reveal mask */
 .contact__title .line{ padding-bottom:.1em; margin-bottom:-.1em; }
-/* never let a line wrap inside the mask — a wrapped second line gets clipped */
+/* never let a line wrap inside the mask, a wrapped second line gets clipped */
 .contact__title .line__i{ white-space:nowrap; }
 
 .magnet{
@@ -448,7 +448,7 @@ main{ position:relative; z-index:2; }
   padding:clamp(.9rem,1.8vw,1.4rem) clamp(1.8rem,4vw,3.2rem);
   font-family:var(--font-mono),monospace; font-size:clamp(.8rem,1.4vw,1.05rem);
   letter-spacing:.06em; position:relative; overflow:hidden; will-change:transform;
-  /* the WebGL object passes behind this — keep the label readable over it */
+  /* the WebGL object passes behind this, keep the label readable over it */
   background:rgba(8,7,10,.4); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
 }
 .magnet::before{
@@ -459,7 +459,7 @@ main{ position:relative; z-index:2; }
 .magnet__in{ position:relative; z-index:1; transition:color .4s var(--ease); }
 .magnet:hover .magnet__in{ color:#000; }
 
-/* sits directly over the WebGL object at this point in the scroll — dim grey alone
+/* sits directly over the WebGL object at this point in the scroll, dim grey alone
    loses against the bright rim, so lift the value and add a soft dark halo */
 .socials{
   display:flex; flex-wrap:wrap; justify-content:center; gap:clamp(.9rem,2.5vw,2.2rem);
@@ -482,7 +482,7 @@ main{ position:relative; z-index:2; }
   /* the pinned horizontal track becomes a real swipeable rail */
   .gallery__pin{
     height:auto; display:block; overflow-x:auto; overflow-y:hidden;
-    /* proximity, not mandatory — mandatory fights the user on a rail whose items
+    /* proximity, not mandatory, mandatory fights the user on a rail whose items
        are different widths. scroll-padding keeps snapping off the track gutter. */
     scroll-snap-type:x proximity; scroll-padding-inline:var(--pad);
     -webkit-overflow-scrolling:touch;

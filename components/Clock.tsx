@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 /** Renders a static placeholder on the server and only starts ticking after
- *  mount — a live time rendered during SSR guarantees a hydration mismatch. */
+ *  mount, a live time rendered during SSR guarantees a hydration mismatch. */
 export default function Clock({ prefix = '' }: { prefix?: string }) {
   const [time, setTime] = useState('--:--:--');
 

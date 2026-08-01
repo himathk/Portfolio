@@ -26,9 +26,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Himath Kariyawasam — Design, Motion & Code',
+  title: 'Himath Kariyawasam · Design, Motion & Code',
   description:
-    'Himath Kariyawasam — design, motion and code. Bold interfaces with heavy animation.',
+    'Himath Kariyawasam designs and builds bold, heavily animated interfaces.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

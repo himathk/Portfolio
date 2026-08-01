@@ -5,8 +5,8 @@ import gsap from 'gsap';
 import { subscribe, pointer, lerp } from '@/lib/motion';
 
 const PROJECTS = [
-  { n: '01', title: 'Aegis', cat: 'Investigative AI · ML Lead & UI/UX', yr: '2025—26', art: 'g1' },
-  { n: '02', title: 'InfoIns', cat: 'Insurance Platform · Design & Frontend', yr: '2023—Now', art: 'g2' },
+  { n: '01', title: 'Aegis', cat: 'Investigative AI · ML Lead & UI/UX', yr: '2025-26', art: 'g1' },
+  { n: '02', title: 'InfoIns', cat: 'Insurance Platform · Design & Frontend', yr: 'Since 2023', art: 'g2' },
   { n: '03', title: 'SnapVibe', cat: 'Photobooth Web · UI/UX & Frontend', yr: '2026', art: 'g3' },
   { n: '04', title: 'JewishChat', cat: 'Community Groups · Lead Designer', yr: '2026', art: 'g4' },
   { n: '05', title: 'Heliez LK', cat: 'Cake Artistry · Design & Dev Lead', yr: '2026', art: 'g5' },
@@ -73,7 +73,7 @@ export default function Work() {
         <h2 className="sec-title" data-split="chars">
           Projects
         </h2>
-        <span className="mono sec-count">05 — Selected</span>
+        <span className="mono sec-count">Five selected</span>
       </div>
 
       <ul className="worklist" ref={list}>

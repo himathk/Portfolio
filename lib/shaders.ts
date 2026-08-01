@@ -1,4 +1,4 @@
-/* GLSL lifted verbatim from the pre-migration build — do not retype. */
+/* GLSL lifted verbatim from the pre-migration build, do not retype. */
 
 export const NOISE_GLSL = `
 vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}

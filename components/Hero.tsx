@@ -7,7 +7,7 @@ export default function Hero() {
           while the rest of the hero stays bottom-aligned */}
       <div className="hero__eyebrow mono" data-anim="fade">
         <span>Portfolio</span>
-        <span>Vol. 01 — MMXXVI</span>
+        <span>Vol. 01 / MMXXVI</span>
       </div>
 
       <div className="hero__type">
