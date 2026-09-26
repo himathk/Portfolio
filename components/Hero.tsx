@@ -1,8 +1,11 @@
-const TICKER = 'DESIGN ✦ MOTION ✦ CODE ✦ UI/UX ✦ FRONT-END ✦ BRAND ✦';
+const TICKER = 'DESIGN ✦ MOTION ✦ FILM ✦ CODE ✦ UI/UX ✦ FRONT-END ✦ BRAND ✦';
 
 export default function Hero() {
   return (
     <section className="hero">
+      {/* the visible portrait is drawn in the WebGL scene; this is its accessible twin */}
+      <img className="sr-only" src="/hero/portrait.webp" alt="Himath Kariyawasam, crouching, looking across at the 3D object" />
+
       {/* header rule sits under the nav; margin-bottom:auto pins it up there
           while the rest of the hero stays bottom-aligned */}
       <div className="hero__eyebrow mono" data-anim="fade">

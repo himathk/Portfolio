@@ -119,3 +119,48 @@ void main(){
   gl_FragColor = vec4(uColorC, uOpacity * (0.10 + fres*0.55));
 }`;
 
+
+/* Hero portrait: a real photograph standing in the same 3D scene as the object,
+   as a flat card. It is deliberately NOT pushed into relief from a depth map:
+   under perspective and the cursor-driven camera, different depths shift by
+   different amounts and his face changes shape as the mouse moves. Flat, it keeps
+   his exact features and still gets parallax against the object and dust passing
+   in front of and behind it. uData packs the silhouette's outward edge normal in
+   RG, scaled by how close the pixel sits to the edge, so the object's glow lands
+   on the side facing it. */
+export const PORTRAIT_VERT = `
+varying vec2  vUv;
+varying vec3  vWorld;
+void main(){
+  vUv = uv;
+  vec4 w = modelMatrix * vec4(position, 1.0);
+  vWorld = w.xyz;
+  gl_Position = projectionMatrix * viewMatrix * w;
+}`;
+
+export const PORTRAIT_FRAG = `
+uniform sampler2D uMap;
+uniform sampler2D uData;
+uniform vec3  uLightPos;
+uniform vec3  uColorC;
+uniform float uKey;
+varying vec2  vUv;
+varying vec3  vWorld;
+void main(){
+  vec4 c = texture2D(uMap, vUv);
+  // below the knees he dissolves into the dark: the headline covers that band anyway
+  float a = c.a * (1.0 - smoothstep(0.63, 0.84, 1.0 - vUv.y));
+  if(a < 0.02) discard;
+  vec2  e    = texture2D(uData, vUv).rg * 2.0 - 1.0;
+  float band = length(e);
+  vec2  n    = band > 0.001 ? e / band : vec2(0.0);
+  vec3  toL  = uLightPos - vWorld;
+  float face = max(dot(n, normalize(toL.xy)), 0.0);
+  float fall = 1.0 / (1.0 + dot(toL, toL) * 0.12);
+  float dark = 1.0 - dot(c.rgb, vec3(0.299, 0.587, 0.114));
+  vec3  col  = c.rgb * uKey;
+  col += uColorC * pow(band, 2.6) * face * fall * 2.6;
+  // faint neutral edge light, strongest on dark cloth so it separates from the page
+  col += vec3(0.925, 0.918, 0.89) * pow(band, 2.0) * 0.16 * dark * uKey;
+  gl_FragColor = vec4(col, a);
+}`;

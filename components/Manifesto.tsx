@@ -1,7 +1,7 @@
 const DISCIPLINES = [
   ['01 / Discipline', 'Product &', 'Interface Design'],
   ['02 / Discipline', 'Brand &', 'Art Direction'],
-  ['03 / Discipline', 'Motion &', 'Interaction'],
+  ['03 / Discipline', 'Motion &', 'Film'],
   ['04 / Discipline', 'Front-End', 'Development'],
 ];
 

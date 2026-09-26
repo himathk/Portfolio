@@ -20,7 +20,7 @@ const ROWS: { label: string; items: { name: string; key?: boolean }[] }[] = [
     items: [{ name: 'Figma', key: true }, { name: 'Photoshop' }],
   },
   {
-    label: 'Motion & 3D',
+    label: 'Film, Motion & 3D',
     items: [
       { name: 'After Effects', key: true },
       { name: 'Premiere Pro' },

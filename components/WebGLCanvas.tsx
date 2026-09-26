@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { VERT, FRAG, FRAG_CAGE } from '@/lib/shaders';
+import { VERT, FRAG, FRAG_CAGE, PORTRAIT_VERT, PORTRAIT_FRAG } from '@/lib/shaders';
 import { subscribe, pointer, view, accent, lerp, clamp01, smooth } from '@/lib/motion';
 
 /* Blob choreography across the page (0 = top, 1 = bottom).
@@ -21,6 +21,14 @@ const KEYS = [
 ];
 
 const DEG2RAD = Math.PI / 180;
+
+/* Hero portrait: width over height of the image, and where the top of his hair
+   and the bottom of his beard sit, as fractions of the image height from the top. */
+const PORTRAIT_ASPECT = 1334 / 2000;
+const PORTRAIT_HAIR = 0.15;
+const PORTRAIT_CHIN = 0.334;
+// depth of the portrait plane, a little in front of the object's hero position
+const PORTRAIT_Z = 0.8;
 
 /* These hex values are artistic constants feeding custom shader maths, not
  * physical colours. Three's default sRGB->linear conversion on Color would
@@ -148,10 +156,67 @@ export default function WebGLCanvas() {
     const dust = new THREE.Points(dustGeo, dustMat);
     scene.add(dust);
 
+    // The hero portrait is a real photograph placed in the scene itself rather than
+    // layered over it, so the camera sway gives true parallax against the object,
+    // and dust drawn after it is depth-tested: some drifts in front, some behind.
+    // Colour space left unset for the same reason as raw(): the shader writes these
+    // values straight out, so they have to arrive untouched.
+    let portraitReady = false;
+    let pending = 2;
+    const onPortraitTexture = () => {
+      if (--pending === 0) portraitReady = true;
+    };
+    const texLoader = new THREE.TextureLoader();
+    const portraitMap = texLoader.load('/hero/portrait.webp', onPortraitTexture);
+    const portraitData = texLoader.load('/hero/portrait-data.webp', onPortraitTexture);
+    const portraitMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uMap: { value: portraitMap },
+        uData: { value: portraitData },
+        uLightPos: { value: group.position },
+        uColorC: uniforms.uColorC,
+        uKey: { value: 0 },
+      },
+      vertexShader: PORTRAIT_VERT,
+      fragmentShader: PORTRAIT_FRAG,
+      transparent: true,
+    });
+    const portraitGeo = new THREE.PlaneGeometry(1, 1);
+    const portraitMesh = new THREE.Mesh(portraitGeo, portraitMat);
+    portraitMesh.renderOrder = 1;
+    portraitMesh.frustumCulled = false; // visibility is managed against the scroll below
+    portraitMesh.visible = false;
+    scene.add(portraitMesh);
+    dust.renderOrder = 2;
+
+    // He is sized so his face fits between the hero's top rule and its headline:
+    // hair just under the rule, chin just above the type. The headline then runs
+    // across his (black) tee, cover style, and never over his face. Summed from
+    // offsetTop, not read off rects, because the intro animates these with
+    // transforms that would skew a rect read at mount.
+    const brow = document.querySelector<HTMLElement>('.hero__eyebrow');
+    const title = document.querySelector<HTMLElement>('.hero__title');
+    const docTop = (el: HTMLElement) => {
+      let y = 0;
+      for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+      return y;
+    };
+    let browTop = 0;
+    let titleTop = 0;
+
+    // Entrance: once the loader lifts he is lit only by the object's glow for a
+    // beat, then the key light comes up.
+    const calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let litAt = -1;
+
     // Size off an observer rather than trusting innerWidth at mount: if the
     // canvas mounts before layout settles the viewport can report 0, and a
     // resize event alone may never arrive to correct it.
     const resize = () => {
+      if (brow && title) {
+        browTop = docTop(brow);
+        titleTop = docTop(title);
+      }
       const w = window.innerWidth;
       const h = window.innerHeight;
       if (w === 0 || h === 0) return;
@@ -222,6 +287,27 @@ export default function WebGLCanvas() {
       }
       uniforms.uColorC.value.lerp(cTarget, 0.09);
 
+      // Portrait, measured in world units at its own depth. It trails the page by a
+      // tenth on scroll so the type in front reads as the nearer layer.
+      const pHalfH = Math.tan((camera.fov / 2) * DEG2RAD) * (camera.position.z - PORTRAIT_Z);
+      const pHalfW = pHalfH * camera.aspect;
+      const toWorld = (2 * pHalfH) / window.innerHeight;
+      const gap = 0.02 * window.innerHeight;
+      const fitH = ((titleTop - browTop - 2 * gap) * toWorld) / (PORTRAIT_CHIN - PORTRAIT_HAIR);
+      const pH = Math.min(fitH, 0.94 * 2 * pHalfH, (0.9 * 2 * pHalfW) / PORTRAIT_ASPECT);
+      const chinY = pHalfH - (titleTop - gap - window.scrollY * 0.9) * toWorld;
+      const pY = chinY + (PORTRAIT_CHIN - 0.5) * pH;
+      portraitMesh.scale.set(pH * PORTRAIT_ASPECT, pH, 1);
+      // left of centre on landscape screens so he looks across at the object
+      portraitMesh.position.set((portrait ? 0 : -0.28) * pHalfW, pY, PORTRAIT_Z);
+      // hidden once scrolled away, and on hero layouts too squat to fit him properly
+      portraitMesh.visible =
+        portraitReady && !!title && pH > 0.3 * 2 * pHalfH && pY - pH / 2 < pHalfH;
+
+      if (litAt < 0 && !document.body.classList.contains('is-loading')) litAt = t;
+      const lit = calmMotion ? 1 : litAt < 0 ? 0 : smooth(clamp01((t - litAt - 0.5) / 1.4));
+      portraitMat.uniforms.uKey.value = 0.06 + 0.94 * lit;
+
       dust.rotation.y = -t * 0.03 + p * 1.2;
       dust.rotation.x = p * 0.6;
 
@@ -243,6 +329,10 @@ export default function WebGLCanvas() {
       dustGeo.dispose();
       dustMat.dispose();
       dustTex.dispose();
+      portraitGeo.dispose();
+      portraitMat.dispose();
+      portraitMap.dispose();
+      portraitData.dispose();
       renderer.dispose();
     };
   }, []);
