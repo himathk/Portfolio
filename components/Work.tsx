@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { subscribe, pointer, accent, lerp } from '@/lib/motion';
 import AegisCase, { AegisOpening, AegisEnd } from '@/components/AegisCase';
+import SnapVibe from '@/components/SnapVibe';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -18,6 +19,8 @@ type Project = {
   accent: string;
   /** has an in-page case study the row expands into */
   caseStudy?: boolean;
+  /** has a live window below the case study to try the real product in */
+  live?: boolean;
 };
 
 const PROJECTS: Project[] = [
@@ -32,19 +35,20 @@ const PROJECTS: Project[] = [
   },
   {
     n: '02',
+    title: 'SnapVibe',
+    cat: 'Event Photo Booth · Solo Design & Build',
+    yr: '2026',
+    art: 'snapvibe',
+    accent: '#D4AF37',
+    live: true,
+  },
+  {
+    n: '03',
     title: 'InfoIns',
     cat: 'Insurance Platform · Design & Frontend',
     yr: 'Since 2023',
     art: 'g2',
     accent: '#3EFFC8',
-  },
-  {
-    n: '03',
-    title: 'SnapVibe',
-    cat: 'Photobooth Web · UI/UX & Frontend',
-    yr: '2026',
-    art: 'g3',
-    accent: '#FF2D78',
   },
   {
     n: '04',
@@ -70,12 +74,13 @@ function WorkList({ after = false }: { after?: boolean }) {
   return (
     <ul className="worklist">
       {PROJECTS.map((p) => {
+        const tag = p.caseStudy ? (after ? 'Viewed' : 'Case study ↓') : p.live ? 'Try it live ↓' : null;
         const inner = (
           <>
             <span className="work-row__n mono">{p.n}</span>
             <h3 className="work-row__title">
               {p.title}
-              {p.caseStudy && <span className="work-row__tag mono">{after ? 'Viewed' : 'Case study ↓'}</span>}
+              {tag && <span className={`work-row__tag mono${p.live ? ' work-row__tag--live' : ''}`}>{tag}</span>}
             </h3>
             <span className="work-row__cat mono">{p.cat}</span>
             <span className="work-row__yr mono">{p.yr}</span>
@@ -86,6 +91,11 @@ function WorkList({ after = false }: { after?: boolean }) {
           <li key={p.n} className={p.caseStudy ? 'is-case' : undefined}>
             {p.caseStudy && !after ? (
               <a className="work-row" href="#aegis" data-case {...shared}>
+                {inner}
+              </a>
+            ) : p.live ? (
+              // the second list is aria-hidden, so its link stays out of the tab order
+              <a className="work-row" href="#snapvibe" tabIndex={after ? -1 : undefined} {...shared}>
                 {inner}
               </a>
             ) : (
@@ -287,6 +297,8 @@ export default function Work() {
           <AegisEnd />
         </div>
       </div>
+
+      <SnapVibe />
 
       {/* cursor-following preview */}
       <div className="preview" ref={preview}>
