@@ -148,9 +148,7 @@ varying vec2  vUv;
 varying vec3  vWorld;
 void main(){
   vec4 c = texture2D(uMap, vUv);
-  // below the knees he dissolves into the dark: the headline covers that band anyway
-  float a = c.a * (1.0 - smoothstep(0.63, 0.84, 1.0 - vUv.y));
-  if(a < 0.02) discard;
+  if(c.a < 0.02) discard;
   vec2  e    = texture2D(uData, vUv).rg * 2.0 - 1.0;
   float band = length(e);
   vec2  n    = band > 0.001 ? e / band : vec2(0.0);
@@ -162,5 +160,5 @@ void main(){
   col += uColorC * pow(band, 2.6) * face * fall * 2.6;
   // faint neutral edge light, strongest on dark cloth so it separates from the page
   col += vec3(0.925, 0.918, 0.89) * pow(band, 2.0) * 0.16 * dark * uKey;
-  gl_FragColor = vec4(col, a);
+  gl_FragColor = vec4(col, c.a);
 }`;

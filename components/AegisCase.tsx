@@ -170,33 +170,60 @@ export default function AegisCase() {
           onLeaveBack: () => c.classList.remove('is-lit'),
         }),
       );
-      tagged.forEach((p) =>
-        ScrollTrigger.create({ trigger: p, start: 'top 82%', once: true, onEnter: () => p.classList.add('is-tagged') }),
-      );
+      // captions in the screens carousel tag as their card slides in (below);
+      // everything else as it scrolls up into view
+      tagged
+        .filter((p) => !p.closest('.screens'))
+        .forEach((p) =>
+          ScrollTrigger.create({ trigger: p, start: 'top 82%', once: true, onEnter: () => p.classList.add('is-tagged') }),
+        );
 
-      // Screens stack on desktop: each card sticks, and the one before it sinks back
-      // as the next slides over. The dashboard is a tall capture, so it scrolls
-      // inside its own frame while stuck.
+      // The five screens are a carousel. On desktop the row pins and the page's
+      // vertical scroll slides it sideways, with the next card always peeking in.
+      // Phones swipe it natively (CSS), so there the captions just tag on arrival.
+      const screens = el.querySelector<HTMLElement>('.screens');
+      const track = screens?.querySelector<HTMLElement>('.screens__track');
       const mm = gsap.matchMedia();
       mm.add('(min-width: 901px)', () => {
-        const slots = [...el.querySelectorAll<HTMLElement>('.screen')];
-        slots.forEach((slot, i) => {
-          const next = slots[i + 1];
-          if (!next) return;
-          // explicit start: tweening from the computed 'none', GSAP reads brightness 0
-          // and the card being looked at goes black instead of dimming later
-          gsap.fromTo(
-            slot.querySelector('.screen__card'),
-            { scale: 1, filter: 'brightness(1)' },
-            {
-              scale: 0.9,
-              filter: 'brightness(0.35)',
-              ease: 'none',
-              scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 20%', scrub: true },
+        if (!screens || !track) return;
+        const cards = [...track.querySelectorAll<HTMLElement>('.screen')];
+        const count = screens.querySelector<HTMLElement>('.screens__count');
+        const dist = () => Math.max(0, track.scrollWidth - window.innerWidth);
+        const slide = gsap
+          .timeline({
+            scrollTrigger: {
+              trigger: screens,
+              start: 'top top',
+              end: () => '+=' + dist(),
+              pin: true,
+              scrub: 1,
+              invalidateOnRefresh: true,
+              // between the Work stage above (3) and the fold-back below (1)
+              refreshPriority: 2,
+              onUpdate: (self) => {
+                if (count) count.textContent = String(Math.round(self.progress * (cards.length - 1)) + 1).padStart(2, '0');
+              },
             },
-          );
+          })
+          .to(track, { x: () => -dist(), ease: 'none' }, 0)
+          .fromTo('.screens__bar b', { scaleX: 1 / cards.length }, { scaleX: 1, ease: 'none' }, 0);
+
+        // cards already on screen when the carousel arrives tag on arrival; the rest
+        // tag as they slide in
+        cards.forEach((card) => {
+          const cap = card.querySelector<HTMLElement>('.screen__cap');
+          if (!cap) return;
+          const tag = () => cap.classList.add('is-tagged');
+          if (card.offsetLeft < window.innerWidth * 0.8) {
+            ScrollTrigger.create({ trigger: screens, start: 'top 70%', once: true, onEnter: tag });
+          } else {
+            ScrollTrigger.create({ trigger: card, containerAnimation: slide, start: 'left 80%', once: true, onEnter: tag });
+          }
         });
-        const tall = el.querySelector<HTMLElement>('.screen--tall');
+
+        // the dashboard is a tall capture, so it scrolls inside its own frame as
+        // it crosses the screen
+        const tall = track.querySelector<HTMLElement>('.screen--tall');
         const img = tall?.querySelector<HTMLImageElement>('.screen__img');
         const view = tall?.querySelector<HTMLElement>('.screen__view');
         if (tall && img && view) {
@@ -205,13 +232,24 @@ export default function AegisCase() {
             ease: 'none',
             scrollTrigger: {
               trigger: tall,
-              start: 'top top',
-              end: 'bottom bottom',
+              containerAnimation: slide,
+              start: 'left 70%',
+              end: 'right 30%',
               scrub: true,
               invalidateOnRefresh: true,
             },
           });
         }
+      });
+      mm.add('(max-width: 900px)', () => {
+        if (!screens) return;
+        const caps = [...screens.querySelectorAll<HTMLElement>('.screen__cap')];
+        ScrollTrigger.create({
+          trigger: screens,
+          start: 'top 75%',
+          once: true,
+          onEnter: () => caps.forEach((c) => c.classList.add('is-tagged')),
+        });
       });
       return () => mm.revert();
     },
@@ -270,9 +308,9 @@ export default function AegisCase() {
         </header>
         <h4 className="case__title">Five screens from the deployed system. I designed every one.</h4>
         <div className="screens">
-          {SCREENS.map((s, i) => (
-            <div className={`screen${s.h > s.w ? ' screen--tall' : ''}`} key={s.key}>
-              <div className="screen__card">
+          <div className="screens__track">
+            {SCREENS.map((s, i) => (
+              <figure className={`screen${s.h > s.w ? ' screen--tall' : ''}`} key={s.key}>
                 <div className="screen__bar mono" aria-hidden="true">
                   <i />
                   <i />
@@ -289,13 +327,20 @@ export default function AegisCase() {
                     loading="lazy"
                   />
                 </div>
-                <p className="screen__cap" data-ents>
+                <figcaption className="screen__cap" data-ents>
                   <span className="mono">03.{i + 1}</span>
                   <span>{s.caption}</span>
-                </p>
-              </div>
-            </div>
-          ))}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div className="screens__progress mono" aria-hidden="true">
+            <span className="screens__count">01</span>
+            <span>/ {String(SCREENS.length).padStart(2, '0')}</span>
+            <i className="screens__bar">
+              <b />
+            </i>
+          </div>
         </div>
       </section>
 

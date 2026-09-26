@@ -23,10 +23,10 @@ const KEYS = [
 const DEG2RAD = Math.PI / 180;
 
 /* Hero portrait: width over height of the image, and where the top of his hair
-   and the bottom of his beard sit, as fractions of the image height from the top. */
+   and the sole of his front shoe sit, as fractions of the image height from the top. */
 const PORTRAIT_ASPECT = 1334 / 2000;
 const PORTRAIT_HAIR = 0.15;
-const PORTRAIT_CHIN = 0.334;
+const PORTRAIT_FEET = 0.918;
 // depth of the portrait plane, a little in front of the object's hero position
 const PORTRAIT_Z = 0.8;
 
@@ -189,20 +189,20 @@ export default function WebGLCanvas() {
     scene.add(portraitMesh);
     dust.renderOrder = 2;
 
-    // He is sized so his face fits between the hero's top rule and its headline:
-    // hair just under the rule, chin just above the type. The headline then runs
-    // across his (black) tee, cover style, and never over his face. Summed from
-    // offsetTop, not read off rects, because the intro animates these with
-    // transforms that would skew a rect read at mount.
+    // He fills the hero from its top rule down to its floor: hair just under the
+    // rule, front shoe standing on the ticker. The name runs across him and blends
+    // with him (difference, set on the title in CSS). Summed from offsetTop, not
+    // read off rects, because the intro animates these with transforms that would
+    // skew a rect read at mount.
     const brow = document.querySelector<HTMLElement>('.hero__eyebrow');
-    const title = document.querySelector<HTMLElement>('.hero__title');
+    const ticker = document.querySelector<HTMLElement>('.hero .ticker');
     const docTop = (el: HTMLElement) => {
       let y = 0;
       for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
       return y;
     };
     let browTop = 0;
-    let titleTop = 0;
+    let tickerTop = 0;
 
     // Entrance: once the loader lifts he is lit only by the object's glow for a
     // beat, then the key light comes up.
@@ -213,9 +213,9 @@ export default function WebGLCanvas() {
     // canvas mounts before layout settles the viewport can report 0, and a
     // resize event alone may never arrive to correct it.
     const resize = () => {
-      if (brow && title) {
+      if (brow && ticker) {
         browTop = docTop(brow);
-        titleTop = docTop(title);
+        tickerTop = docTop(ticker);
       }
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -293,16 +293,18 @@ export default function WebGLCanvas() {
       const pHalfW = pHalfH * camera.aspect;
       const toWorld = (2 * pHalfH) / window.innerHeight;
       const gap = 0.02 * window.innerHeight;
-      const fitH = ((titleTop - browTop - 2 * gap) * toWorld) / (PORTRAIT_CHIN - PORTRAIT_HAIR);
-      const pH = Math.min(fitH, 0.94 * 2 * pHalfH, (0.9 * 2 * pHalfW) / PORTRAIT_ASPECT);
-      const chinY = pHalfH - (titleTop - gap - window.scrollY * 0.9) * toWorld;
-      const pY = chinY + (PORTRAIT_CHIN - 0.5) * pH;
+      // narrower screens run out of width first; then his feet stay on the ticker
+      // and his head simply sits lower
+      const fitH = ((tickerTop - browTop - gap) * toWorld) / (PORTRAIT_FEET - PORTRAIT_HAIR);
+      const pH = Math.min(fitH, (0.9 * 2 * pHalfW) / PORTRAIT_ASPECT);
+      const feetY = pHalfH - (tickerTop - window.scrollY * 0.9) * toWorld;
+      const pY = feetY + (PORTRAIT_FEET - 0.5) * pH;
       portraitMesh.scale.set(pH * PORTRAIT_ASPECT, pH, 1);
       // left of centre on landscape screens so he looks across at the object
       portraitMesh.position.set((portrait ? 0 : -0.28) * pHalfW, pY, PORTRAIT_Z);
       // hidden once scrolled away, and on hero layouts too squat to fit him properly
       portraitMesh.visible =
-        portraitReady && !!title && pH > 0.3 * 2 * pHalfH && pY - pH / 2 < pHalfH;
+        portraitReady && !!ticker && pH > 0.3 * 2 * pHalfH && pY - pH / 2 < pHalfH;
 
       if (litAt < 0 && !document.body.classList.contains('is-loading')) litAt = t;
       const lit = calmMotion ? 1 : litAt < 0 ? 0 : smooth(clamp01((t - litAt - 0.5) / 1.4));

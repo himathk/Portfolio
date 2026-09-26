@@ -109,7 +109,7 @@ h1,h2,h3,h4{
 #gl{ position:fixed; inset:0; width:100%; height:100%; z-index:0; display:block; }
 
 .vignette{
-  position:fixed; inset:0; z-index:1; pointer-events:none;
+  position:fixed; inset:0; z-index:0; pointer-events:none;
   background:radial-gradient(120% 90% at 50% 45%, transparent 30%, rgba(8,7,10,.55) 70%, rgba(8,7,10,.92) 100%);
 }
 .grain{
@@ -124,7 +124,11 @@ h1,h2,h3,h4{
   90%{transform:translate(-6%,2%)}
 }
 
-main{ position:relative; z-index:2; }
+/* No z-index on purpose: a z-index would make main its own layer group, and the
+   hero name's difference blend could then only see main, not the WebGL canvas
+   behind it. Positioned, main still paints above #gl and .vignette (earlier in
+   the DOM, same level). */
+main{ position:relative; }
 
 /* =========================================================
    CURSOR
@@ -190,7 +194,7 @@ main{ position:relative; z-index:2; }
   color:var(--fg-dim);
 }
 
-.hero__title{ font-size:var(--fs-mega); line-height:.8; letter-spacing:-.05em; }
+.hero__title{ font-size:var(--fs-mega); line-height:.8; letter-spacing:-.05em; mix-blend-mode:difference; }
 .hero__title .line--indent{ display:flex; align-items:flex-end; gap:clamp(.6rem,2.5vw,2.5rem); }
 .hero__title .line--indent .line__i{ overflow:visible; }
 .hero__title .dot{ color:var(--acid); }
@@ -324,7 +328,7 @@ main{ position:relative; z-index:2; }
 .work{ padding:clamp(5rem,12vw,11rem) 0; position:relative; }
 .worklist{ border-top:1px solid var(--line); }
 .work-row{
-  position:relative; display:grid; align-items:center; gap:1rem;
+  position:relative; isolation:isolate; display:grid; align-items:center; gap:1rem;
   grid-template-columns:auto 1fr auto auto;
   padding:clamp(1.1rem,2.6vw,2.1rem) var(--pad);
   border-bottom:1px solid var(--line); overflow:hidden;
@@ -499,15 +503,24 @@ main{ position:relative; z-index:2; }
 .ent--org{ --c:#FFB03E; }
 .ent--date{ --c:#B18CFF; }
 
-/* the five screens: each slot is taller than its card, so the cards stick and
-   stack; the tall dashboard gets extra room to scroll inside its own frame */
-.screens{ margin-top:clamp(2.5rem,6vw,5rem); }
-.screen{ height:112svh; }
-.screen:last-child{ height:auto; }
-.screen--tall{ height:230svh; }
-.screen__card{
-  position:sticky; top:calc(var(--nav-h) + 2svh); transform-origin:50% 0;
-  max-width:calc((100svh - var(--nav-h) - 12rem) * 1.9);
+/* The five screens: a carousel. On desktop the block pins for as long as the row
+   is wider than the screen and the page's scroll slides it sideways; phones
+   swipe it natively. It breaks out of the text column so cards can travel the
+   full width, with the first card still aligned to the text. */
+.screens{
+  position:relative; margin-top:clamp(2.5rem,6vw,5rem);
+  margin-left:calc(-1 * (var(--pad) + var(--gutter))); margin-right:calc(-1 * var(--pad));
+  height:100svh; padding-top:var(--nav-h); overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center; gap:clamp(1rem,2.5svh,2rem);
+}
+.screens__track{
+  display:flex; align-items:stretch; gap:clamp(1.2rem,3vw,3rem); width:max-content;
+  padding-inline:calc(var(--pad) + var(--gutter)) var(--pad); will-change:transform;
+}
+/* sized so a card plus its bar and caption always fits the pinned screen */
+.screen{
+  flex:0 0 auto; width:min(62vw, calc((100svh - var(--nav-h) - 16rem) * 1.92));
+  display:flex; flex-direction:column; /* equal heights: a longer caption just grows its card's footer */
   overflow:hidden; border:1px solid rgba(255,255,255,.1); border-radius:10px;
   background:#0b0d18; box-shadow:0 30px 80px rgba(0,0,0,.55);
 }
@@ -517,14 +530,22 @@ main{ position:relative; z-index:2; }
 }
 .screen__bar i{ width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.14); }
 .screen__bar span{ margin-left:.8rem; }
-.screen__view{ position:relative; overflow:hidden; background:#05060d; }
-.screen--tall .screen__view{ aspect-ratio:1920/1000; }
-.screen__img{ display:block; width:100%; height:auto; }
+/* one window shape for every card; the tall dashboard scrolls inside its own */
+.screen__view{ position:relative; overflow:hidden; aspect-ratio:1920/1000; background:#05060d; }
+.screen__img{ display:block; width:100%; height:100%; object-fit:cover; object-position:top; }
+.screen--tall .screen__img{ height:auto; }
 .screen__cap{
   display:flex; align-items:baseline; gap:1.2rem; padding:1rem 1.25rem 1.2rem;
   color:rgba(236,234,227,.82); font-size:clamp(.95rem,1.15vw,1.35rem);
 }
 .screen__cap .mono{ flex:none; color:var(--acid); }
+.screens__progress{
+  display:flex; align-items:center; gap:.6rem; color:var(--fg-dim);
+  padding-inline:calc(var(--pad) + var(--gutter)) var(--pad);
+}
+.screens__count{ color:var(--acid); }
+.screens__bar{ position:relative; flex:0 0 clamp(120px,18vw,260px); height:1px; margin-left:.8rem; background:var(--line); }
+.screens__bar b{ position:absolute; inset:0; background:var(--acid); transform-origin:left; transform:scaleX(.2); }
 
 .roles{
   margin-top:clamp(2.2rem,5vw,4rem); display:grid; gap:1px;
@@ -547,9 +568,16 @@ main{ position:relative; z-index:2; }
   .work-stage .work-row__title{ font-size:clamp(2rem,7.5vw,11rem); }
   .case-panel{ position:relative; inset:auto; height:100svh; margin-top:clamp(2rem,6vw,4rem); }
   .work-stage--after{ display:none; }
-  .screen,.screen--tall{ height:auto; }
-  .screen + .screen{ margin-top:1.5rem; }
-  .screen__card{ position:relative; top:auto; max-width:none; }
+  .screens{
+    height:auto; padding-top:0; overflow-x:auto; overflow-y:hidden; scrollbar-width:none;
+    scroll-snap-type:x mandatory; scroll-padding-inline:var(--pad);
+  }
+  .screens::-webkit-scrollbar{ display:none; }
+  /* from the screen edge, not the text column, and 3rem short of full width, so
+     the next card always peeks in and it's obvious the row swipes */
+  .screens__track{ padding-inline:var(--pad); }
+  .screen{ width:min(calc(100vw - 2 * var(--pad) - 3rem), 640px); scroll-snap-align:start; }
+  .screens__progress{ display:none; }
 }
 
 /* generated placeholder art */

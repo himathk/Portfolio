@@ -213,7 +213,8 @@ export default function Work() {
             pin: true,
             scrub: 0.6,
             invalidateOnRefresh: true,
-            refreshPriority: 2,
+            // highest: the screens carousel (2) and fold-back (1) sit below it
+            refreshPriority: 3,
           },
         })
         .fromTo(open, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.1, ease: 'none' }, 0)
