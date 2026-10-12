@@ -327,24 +327,51 @@ main{ position:relative; }
    WORK LIST
    ========================================================= */
 .work{ padding:clamp(5rem,12vw,11rem) 0; position:relative; }
-.worklist{ border-top:1px solid var(--line); }
+
+/* Case files. Each row is a folder in a drawer: its top edge is the rule, its
+   index tab sits on that edge, and the tabs step across the right half of the
+   drawer (where no title reaches) so every one stays readable. Hovering pulls
+   the folder up and lights its tab. The lift lives on the li because the row
+   itself carries GSAP's entrance transform. */
+.worklist{ --tab-w:clamp(5.6rem,8vw,9rem); --tab-from:.5; }
+.worklist li{ position:relative; transition:transform .5s var(--ease); }
+.worklist li:hover{ transform:translateY(-6px); }
+.worklist li:last-child .work-row{ border-bottom:1px solid var(--line); }
 .work-row{
-  position:relative; isolation:isolate; display:grid; align-items:center; gap:1rem;
-  grid-template-columns:auto 1fr auto auto;
+  position:relative; display:grid; align-items:center; gap:1rem;
+  grid-template-columns:1fr auto auto;
   padding:clamp(1.1rem,2.6vw,2.1rem) var(--pad);
-  border-bottom:1px solid var(--line); overflow:hidden;
+  border-top:1px solid var(--line);
+  transition:border-color .45s var(--ease);
 }
-.work-row::before{
-  content:''; position:absolute; inset:0; background:var(--acid);
-  transform:scaleY(0); transform-origin:bottom; transition:transform .55s var(--ease); z-index:-1;
+.work-row > *{ position:relative; transition:color .45s var(--ease), transform .55s var(--ease); }
+.work-row__tab{
+  position:absolute; bottom:100%; z-index:1;
+  left:calc(var(--pad) + (100% - 2 * var(--pad) - var(--tab-w)) * (var(--tab-from) + (1 - var(--tab-from)) * var(--tab-p, 0)));
+  width:var(--tab-w); margin-bottom:-1px; padding:.5em 0 .4em; text-align:center;
+  border:1px solid var(--line); border-bottom:0; border-radius:7px 7px 0 0;
+  background:var(--bg); color:var(--fg-dim);
+  transition:color .35s var(--ease), background-color .35s var(--ease), border-color .35s var(--ease);
 }
-.work-row > *{ position:relative; z-index:1; transition:color .45s var(--ease), transform .55s var(--ease); }
-.work-row:hover::before{ transform:scaleY(1); transform-origin:top; }
-.work-row:hover > *{ color:#000; }
+.work-row:hover{ border-top-color:var(--acid); }
+.work-row:hover .work-row__tab{ background:var(--acid); border-color:var(--acid); color:#000; }
 .work-row:hover .work-row__title{ transform:translateX(clamp(.5rem,2vw,2.2rem)); }
-.work-row__n{ color:var(--acid); }
 .work-row__title{ font-size:clamp(2rem,7.5vw,11rem); letter-spacing:-.045em; }
 .work-row__cat,.work-row__yr{ color:var(--fg-dim); }
+
+/* the rubber stamp the Aegis folder gets once its case study folds back into it:
+   hot-red ink, a double rule, and a speckled mask so it reads as pressed, not printed */
+.work-row__name{ position:relative; }
+.work-row__stamp{
+  position:absolute; z-index:2; top:50%; left:100%; margin-left:.28em;
+  padding:.32em .6em .28em; border:3px double currentColor; border-radius:4px;
+  color:var(--hot); pointer-events:none; white-space:nowrap;
+  font-weight:900; font-variation-settings:'wdth' 125,'wght' 900; text-transform:uppercase;
+  font-size:max(.95rem,.3em); letter-spacing:.06em; line-height:1;
+  transform:translateY(-50%) rotate(-9deg); opacity:0;
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 2.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 2.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
 /* rows that link out get a visible cue: the custom cursor label only exists on
    pointer devices, so touch users would otherwise have no idea it is clickable */
@@ -355,9 +382,10 @@ main{ position:relative; }
 }
 .work-row--link:hover .work-row__title::after{ color:#000; }
 @media (max-width:760px){
-  .work-row{ grid-template-columns:auto 1fr; }
-  .work-row__cat{ grid-column:2; }
-  .work-row__yr{ grid-column:2; text-align:right; grid-row:1; }
+  .worklist{ --tab-from:.3; }
+  .work-row{ grid-template-columns:1fr auto; }
+  .work-row__cat{ grid-column:1 / -1; }
+  .work-row__yr{ grid-column:2; grid-row:1; text-align:right; }
 }
 
 /* cursor-follow preview */
@@ -379,7 +407,6 @@ main{ position:relative; }
   border:1px solid currentColor; line-height:1; white-space:nowrap; color:var(--acid);
   transition:color .45s var(--ease);
 }
-.work-row:hover .work-row__tag{ color:#000; }
 .work-row__tag--live{ color:#D4AF37; }
 
 /* =========================================================
@@ -927,7 +954,8 @@ body:has(.live__view iframe:hover) .cursor{ opacity:0; }
   .hero__title .line--indent{ gap:.5rem; }
   .hero__title .serif{ padding-bottom:.35em; }
 
-  .work-row{ padding-block:1.15rem; }
+  /* room under each row for the next folder's tab */
+  .worklist .work-row{ padding-block:1.15rem 2.1rem; }
   .work-row__title{ letter-spacing:-.03em; }
 
   .timeline{ padding-left:calc(var(--pad) + 1.6rem); }

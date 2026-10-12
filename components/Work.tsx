@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -76,17 +76,27 @@ const PROJECTS: Project[] = [
 ];
 
 /** The list appears twice: once before the case study as the index it grows out
- *  of, and once after as the list it folds back into, with Aegis marked viewed. */
+ *  of, and once after as the list it folds back into, where Aegis gets stamped
+ *  closed. Each row is a case folder, its index tab on the top edge, the tabs
+ *  staggered across the drawer the way real ones are. */
 function WorkList({ after = false }: { after?: boolean }) {
   return (
     <ul className="worklist">
-      {PROJECTS.map((p) => {
-        const tag = p.caseStudy ? (after ? 'Viewed' : 'Case study ↓') : p.live ? 'Try it live ↓' : null;
+      {PROJECTS.map((p, i) => {
+        const tag = p.caseStudy ? (after ? null : 'Case study ↓') : p.live ? 'Try it live ↓' : null;
         const inner = (
           <>
-            <span className="work-row__n mono">{p.n}</span>
+            <span className="work-row__tab mono">Case {p.n}</span>
             <h3 className="work-row__title">
-              {p.title}
+              <span className="work-row__name">
+                {p.title}
+                {/* rides on the name so it lands just after it at any type size */}
+                {after && p.caseStudy && (
+                  <span className="work-row__stamp" aria-hidden="true">
+                    Case closed
+                  </span>
+                )}
+              </span>
               {tag && <span className={`work-row__tag mono${p.live ? ' work-row__tag--live' : ''}`}>{tag}</span>}
             </h3>
             <span className="work-row__cat mono">{p.cat}</span>
@@ -95,7 +105,11 @@ function WorkList({ after = false }: { after?: boolean }) {
         );
         const shared = { 'data-art': p.art, 'data-accent': p.accent, 'data-project': p.id, 'data-cursor': 'view' };
         return (
-          <li key={p.n} className={p.caseStudy ? 'is-case' : undefined}>
+          <li
+            key={p.n}
+            className={p.caseStudy ? 'is-case' : undefined}
+            style={{ '--tab-p': i / (PROJECTS.length - 1) } as CSSProperties}
+          >
             {p.caseStudy && !after ? (
               <a className="work-row" href="#aegis" data-case {...shared}>
                 {inner}
@@ -250,8 +264,8 @@ export default function Work() {
         .to({}, { duration: 0.15 });
 
       // Fold back: the end card arrives full screen, then shrinks into the Aegis row
-      // of the second list and dissolves, leaving the row marked as viewed.
-      gsap
+      // of the second list and dissolves, and the folder gets stamped closed.
+      const fold = gsap
         .timeline({
           scrollTrigger: {
             trigger: after,
@@ -267,6 +281,29 @@ export default function Work() {
         .fromTo(after.querySelectorAll('.worklist li:not(.is-case)'), { opacity: 0.15 }, { opacity: 1, duration: 0.4 }, 0.3)
         .to(close, { autoAlpha: 0, duration: 0.15 }, 0.72)
         .to({}, { duration: 0.13 });
+
+      // The stamp is a thump, not a scrub: it plays in real time once the card has
+      // gone (past 0.9 of the fold) and lifts off again if you scroll back into it.
+      const stamp = after.querySelector<HTMLElement>('.work-row__stamp');
+      const folder = after.querySelector<HTMLElement>('.is-case');
+      let stamped = false;
+      if (stamp && folder) {
+        gsap.set(stamp, { yPercent: -50, rotation: -9, autoAlpha: 0 });
+        fold.eventCallback('onUpdate', () => {
+          const prog = fold.progress();
+          if (!stamped && prog > 0.9) {
+            stamped = true;
+            gsap
+              .timeline()
+              .fromTo(stamp, { autoAlpha: 0, scale: 2.1, rotation: -17 }, { autoAlpha: 1, scale: 1, rotation: -9, duration: 0.22, ease: 'power4.in' })
+              .fromTo(stamp, { scale: 1.07 }, { scale: 1, duration: 0.45, ease: 'elastic.out(1,0.45)' })
+              .fromTo(folder, { y: 4 }, { y: 0, duration: 0.5, ease: 'elastic.out(1,0.35)', clearProps: 'y' }, '<');
+          } else if (stamped && prog < 0.85) {
+            stamped = false;
+            gsap.to(stamp, { autoAlpha: 0, scale: 1.15, duration: 0.25, ease: 'power2.out' });
+          }
+        });
+      }
     });
 
     // Phones: nothing pins (it fights native touch scrolling), so the opening
