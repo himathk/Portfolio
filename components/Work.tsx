@@ -170,16 +170,19 @@ export default function Work() {
     });
 
     const rows = [...sec.querySelectorAll<HTMLElement>('.work-row')];
+    // overwrite: a quick sweep across the rows starts each tween before the last
+    // has finished, and without it the longer fade-in could outlast the fade-out
+    // and leave the preview stuck on, trailing the cursor down the page
     const enter = (e: Event) => {
       const art = arts.get((e.currentTarget as HTMLElement).dataset.art ?? '');
       if (!art) return;
-      gsap.to(pv, { opacity: 1, scale: 1, duration: 0.55, ease: 'expo.out' });
-      gsap.to([...arts.values()], { opacity: 0, duration: 0.3 });
-      gsap.to(art, { opacity: 1, duration: 0.45 });
+      gsap.to(pv, { opacity: 1, scale: 1, duration: 0.55, ease: 'expo.out', overwrite: 'auto' });
+      gsap.to([...arts.values()], { opacity: 0, duration: 0.3, overwrite: 'auto' });
+      gsap.to(art, { opacity: 1, duration: 0.45, overwrite: 'auto' });
       gsap.fromTo(art, { scale: 1.25 }, { scale: 1, duration: 1.1, ease: 'expo.out' });
     };
     const leave = () => {
-      gsap.to(pv, { opacity: 0, duration: 0.35, ease: 'power2.out' });
+      gsap.to(pv, { opacity: 0, duration: 0.35, ease: 'power2.out', overwrite: 'auto' });
     };
     rows.forEach((r) => {
       r.addEventListener('mouseenter', enter);
