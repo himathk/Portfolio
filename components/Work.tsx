@@ -11,6 +11,8 @@ import SnapVibe from '@/components/SnapVibe';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 type Project = {
+  /** key into lib/graph PROJECTS: the path this row lights in the graph */
+  id: string;
   n: string;
   title: string;
   cat: string;
@@ -25,6 +27,7 @@ type Project = {
 
 const PROJECTS: Project[] = [
   {
+    id: 'aegis',
     n: '01',
     title: 'Aegis',
     cat: 'Investigative AI · Lead, ML & UI/UX',
@@ -34,6 +37,7 @@ const PROJECTS: Project[] = [
     caseStudy: true,
   },
   {
+    id: 'snapvibe',
     n: '02',
     title: 'SnapVibe',
     cat: 'Event Photo Booth · Solo Design & Build',
@@ -43,6 +47,7 @@ const PROJECTS: Project[] = [
     live: true,
   },
   {
+    id: 'infoins',
     n: '03',
     title: 'InfoIns',
     cat: 'Insurance Platform · Design & Frontend',
@@ -51,6 +56,7 @@ const PROJECTS: Project[] = [
     accent: '#3EFFC8',
   },
   {
+    id: 'jewishchat',
     n: '04',
     title: 'JewishChat',
     cat: 'Community Groups · Lead Designer',
@@ -59,6 +65,7 @@ const PROJECTS: Project[] = [
     accent: '#4CC9FF',
   },
   {
+    id: 'heliez',
     n: '05',
     title: 'Heliez LK',
     cat: 'Cake Artistry · Design & Dev Lead',
@@ -86,7 +93,7 @@ function WorkList({ after = false }: { after?: boolean }) {
             <span className="work-row__yr mono">{p.yr}</span>
           </>
         );
-        const shared = { 'data-art': p.art, 'data-accent': p.accent, 'data-cursor': 'view' };
+        const shared = { 'data-art': p.art, 'data-accent': p.accent, 'data-project': p.id, 'data-cursor': 'view' };
         return (
           <li key={p.n} className={p.caseStudy ? 'is-case' : undefined}>
             {p.caseStudy && !after ? (
@@ -134,10 +141,13 @@ export default function Work() {
 
     const tinted = [...sec.querySelectorAll<HTMLElement>('[data-accent]')];
     const tintOn = (e: Event) => {
-      accent.hex = (e.currentTarget as HTMLElement).dataset.accent ?? null;
+      const el = e.currentTarget as HTMLElement;
+      accent.hex = el.dataset.accent ?? null;
+      accent.focus = el.dataset.project ?? null;
     };
     const tintOff = () => {
       accent.hex = null;
+      accent.focus = null;
     };
     tinted.forEach((el) => {
       el.addEventListener('mouseenter', tintOn);
@@ -181,6 +191,7 @@ export default function Work() {
         r.removeEventListener('mouseleave', leave);
       });
       accent.hex = null;
+      accent.focus = null;
     };
   }, []);
 

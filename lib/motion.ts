@@ -19,10 +19,11 @@ export const pointer = { x: 0, y: 0, tx: 0, ty: 0, px: 0, py: 0 };
 /** Scroll progress through the document, 0 at the top, 1 at the bottom. */
 export const view = { scrollP: 0 };
 
-/** Accent override for the WebGL object. Work rows set this on hover so the
- *  3D object picks up the colour of whatever project you are pointing at;
- *  null hands control back to the scroll keyframe track. */
-export const accent: { hex: string | null } = { hex: null };
+/** Hover overrides for the skills graph. Work rows set both on hover, so the
+ *  graph lights that project's path (`focus`, a key into lib/graph PROJECTS) in
+ *  its colour (`hex`); the Toolkit list sets `focus` to a discipline. null hands
+ *  control back to the scroll keyframe track. */
+export const accent: { hex: string | null; focus: string | null } = { hex: null, focus: null };
 
 const subs = new Set<Tick>();
 let rafId = 0;

@@ -2,41 +2,65 @@
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { VERT, FRAG, FRAG_CAGE, PORTRAIT_VERT, PORTRAIT_FRAG } from '@/lib/shaders';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { NODE_VERT, NODE_FRAG, PORTRAIT_VERT, PORTRAIT_FRAG } from '@/lib/shaders';
 import { subscribe, pointer, view, accent, lerp, clamp01, smooth } from '@/lib/motion';
+import { NODES, EDGES, layoutGraph, focusNodes, edgeInFocus } from '@/lib/graph';
 
-/* Blob choreography across the page (0 = top, 1 = bottom).
-   x/y are NORMALISED to the visible frustum at the blob's depth: 1 = the screen
-   edge, 0 = dead centre. World units would look right on one aspect ratio only ,
-   on a portrait phone the visible half-width collapses to ~0.9 world units,
-   which would throw the object clean off-screen for most of the page. */
-const KEYS = [
-  { at: 0.0, x: 0.54, y: 0.26, z: 0.0, s: 0.94, amp: 0.3, freq: 1.5, c: '#D8FF3E' },
-  { at: 0.16, x: -0.45, y: 0.12, z: -1.6, s: 0.72, amp: 0.55, freq: 2.3, c: '#FF4D1C' },
-  { at: 0.4, x: 0.5, y: -0.07, z: -1.2, s: 0.6, amp: 0.2, freq: 3.2, c: '#D8FF3E' },
-  { at: 0.62, x: -0.53, y: 0.05, z: -1.9, s: 0.68, amp: 0.44, freq: 1.9, c: '#4CC9FF' },
-  // drift up behind the closing headline so the email CTA below stays legible
-  { at: 0.84, x: 0.0, y: 0.16, z: 0.4, s: 1.2, amp: 0.34, freq: 1.6, c: '#D8FF3E' },
-  { at: 1.0, x: 0.0, y: 0.26, z: 1.1, s: 1.45, amp: 0.52, freq: 1.3, c: '#FF4D1C' },
+gsap.registerPlugin(ScrollTrigger);
+
+/* The graph's path down the page. Each key hangs off a section (`at`, its top, or
+   its bottom with `.end`), shifted by `off` viewport heights, so the choreography
+   follows the sections wherever they land instead of a fixed share of the page,
+   which went stale every time a section grew. x/y are NORMALISED to the visible
+   frustum at the graph's depth: 1 = the screen edge, 0 = dead centre. World units
+   would look right on one aspect ratio only, on a portrait phone the visible
+   half-width collapses to ~0.9 world units, which would throw the graph clean
+   off-screen for most of the page. */
+type Key = { at: string; off: number; x: number; y: number; z: number; s: number; c: string };
+const KEYS: Key[] = [
+  // hero: a loose cloud on the right, the thing he is looking at
+  { at: 'top', off: 0, x: 0.54, y: 0.24, z: 0.0, s: 1.04, c: '#D8FF3E' },
+  // about: left of the manifesto, where its lines draw in
+  { at: 'about', off: 0.2, x: -0.46, y: 0.04, z: -0.8, s: 0.82, c: '#FF4D1C' },
+  // toolkit: front and centre, turned to face you, labelled
+  { at: 'toolkit', off: 0.45, x: 0.2, y: -0.06, z: 0.2, s: 1.0, c: '#D8FF3E' },
+  { at: 'toolkit.end', off: -1.0, x: 0.2, y: -0.06, z: 0.2, s: 1.0, c: '#D8FF3E' },
+  // work: in the open space right of the titles, where hovering a row lights its path
+  { at: 'work', off: 0.6, x: 0.52, y: -0.14, z: -0.5, s: 0.82, c: '#D8FF3E' },
+  { at: 'aegis', off: 0, x: -0.53, y: 0.05, z: -1.9, s: 0.68, c: '#4CC9FF' },
+  { at: 'snapvibe', off: 0, x: 0.5, y: 0.1, z: -1.4, s: 0.6, c: '#D4AF37' },
+  { at: 'designs', off: 0, x: 0.0, y: 0.32, z: -1.8, s: 0.72, c: '#D8FF3E' },
+  // beside the timeline, not behind it
+  { at: 'education', off: 0, x: 0.52, y: 0.04, z: -1.4, s: 0.66, c: '#D8FF3E' },
+  // up over the closing headline, pulling into one point as it goes
+  { at: 'contact', off: -0.8, x: 0.3, y: 0.3, z: 0.0, s: 1.0, c: '#D8FF3E' },
+  { at: 'end', off: 0, x: 0.6, y: 0.62, z: 0.4, s: 1.1, c: '#FF4D1C' },
 ];
 
 const DEG2RAD = Math.PI / 180;
+const TAU = Math.PI * 2;
 
 /* Hero portrait: width over height of the image, and where the top of his hair
    and the sole of his front shoe sit, as fractions of the image height from the top. */
 const PORTRAIT_ASPECT = 1334 / 2000;
 const PORTRAIT_HAIR = 0.15;
 const PORTRAIT_FEET = 0.918;
-// depth of the portrait plane, a little in front of the object's hero position
+// depth of the portrait plane, a little in front of the graph's hero position
 const PORTRAIT_Z = 0.8;
 
 /* These hex values are artistic constants feeding custom shader maths, not
  * physical colours. Three's default sRGB->linear conversion on Color would
- * crush them (#3A1E6E loses ~75% of its value) and render the object almost
- * black. Declaring them as already-linear keeps the shader arithmetic, and so
- * the look, identical to the pre-migration build, while output still encodes
- * to sRGB correctly. */
+ * crush them (#3A1E6E loses ~75% of its value). Declaring them as already-linear
+ * keeps the shader arithmetic, and so the look, identical to the pre-migration
+ * build. The line material does run the output conversion, so lines get the
+ * managed value instead (see `toLine`). */
 const raw = (hex: string) => new THREE.Color().setStyle(hex, THREE.LinearSRGBColorSpace);
+const BONE = raw('#ECEAE3');
 
 /** Soft round sprite, untextured points render as hard squares. */
 function dotTexture(): THREE.CanvasTexture {
@@ -57,81 +81,107 @@ function dotTexture(): THREE.CanvasTexture {
 
 export default function WebGLCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const labelsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    const labelsEl = labelsRef.current;
     if (!canvas) return;
 
-    // phones pay for the displacement shader per-vertex, so scale the mesh
-    // density and pixel ratio down rather than shipping the desktop budget
     const SMALL = Math.min(window.innerWidth, window.innerHeight) < 700;
-    const DETAIL = SMALL ? 14 : window.innerWidth < 1400 ? 22 : 28;
+    const FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: !SMALL,
-      alpha: true,
-      powerPreference: 'high-performance',
-    });
+    // No WebGL (blocked, or an old GPU): say so on the root, and the Toolkit
+    // shows its full list instead of relying on labels drawn over a graph
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: !SMALL,
+        powerPreference: 'high-performance',
+      });
+    } catch {
+      document.documentElement.classList.add('no-gl');
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, SMALL ? 1.75 : 2));
-    renderer.setClearAlpha(0);
+    // Opaque, in the page's own colour. Every light in here is additive, and on a
+    // transparent canvas a glow's faint edge writes full alpha with almost no
+    // colour, so it replaced the page behind it with near-black: a dark disc
+    // round every dot. Nothing sits under this canvas, so opaque costs nothing.
+    renderer.setClearColor('#08070a', 1);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      45,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      100,
-    );
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 5;
-
-    const uniforms = {
-      uTime: { value: 0 },
-      uAmp: { value: 0.3 },
-      uFreq: { value: 1.5 },
-      uMouse: { value: new THREE.Vector2() },
-      uColorA: { value: raw('#3A1E6E') },
-      uColorB: { value: raw('#08070a') },
-      uColorC: { value: raw('#D8FF3E') },
-      uOpacity: { value: 1 },
-    };
-    const cageUniforms = {
-      uTime: uniforms.uTime,
-      uAmp: { value: 0.22 },
-      uFreq: { value: 1.1 },
-      uMouse: uniforms.uMouse,
-      uColorC: uniforms.uColorC,
-      uOpacity: { value: 1 },
-    };
 
     const group = new THREE.Group();
     scene.add(group);
 
-    const blobGeo = new THREE.IcosahedronGeometry(1, DETAIL);
-    const blobMat = new THREE.ShaderMaterial({
-      uniforms,
-      vertexShader: VERT,
-      fragmentShader: FRAG,
-      transparent: true,
-    });
-    group.add(new THREE.Mesh(blobGeo, blobMat));
+    /* ---------- the graph ---------- */
 
-    const cageGeo = new THREE.IcosahedronGeometry(1.45, 6);
-    const cageMat = new THREE.ShaderMaterial({
-      uniforms: cageUniforms,
-      vertexShader: VERT,
-      fragmentShader: FRAG_CAGE,
-      transparent: true,
-      wireframe: true,
-      depthWrite: false,
+    const L = layoutGraph();
+    const N = NODES.length;
+    const E = EDGES.length;
+
+    const nodePos = new Float32Array(N * 3);
+    const nodeSize = new Float32Array(N);
+    const nodeBright = new Float32Array(N);
+    const nodeCol = new Float32Array(N * 3);
+    const cols = NODES.map(() => raw('#D8FF3E'));
+    NODES.forEach((n, i) => {
+      nodeSize[i] = n.hub ? 0.5 : n.key ? 0.31 : 0.24;
     });
-    group.add(new THREE.Mesh(cageGeo, cageMat));
+
+    const nodeGeo = new THREE.BufferGeometry();
+    nodeGeo.setAttribute('position', new THREE.BufferAttribute(nodePos, 3).setUsage(THREE.DynamicDrawUsage));
+    nodeGeo.setAttribute('aSize', new THREE.BufferAttribute(nodeSize, 1));
+    nodeGeo.setAttribute('aBright', new THREE.BufferAttribute(nodeBright, 1).setUsage(THREE.DynamicDrawUsage));
+    nodeGeo.setAttribute('aColor', new THREE.BufferAttribute(nodeCol, 3).setUsage(THREE.DynamicDrawUsage));
+    const nodeMat = new THREE.ShaderMaterial({
+      uniforms: { uScale: { value: 1 } },
+      vertexShader: NODE_VERT,
+      fragmentShader: NODE_FRAG,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const nodes = new THREE.Points(nodeGeo, nodeMat);
+    nodes.frustumCulled = false; // positions are rewritten every frame
+    group.add(nodes);
+
+    const segPos = new Float32Array(E * 6);
+    const segCol = new Float32Array(E * 6);
+    const edgeInt = new Float32Array(E);
+    const lineGeo = new LineSegmentsGeometry();
+    lineGeo.setPositions(segPos);
+    lineGeo.setColors(segCol);
+    // setPositions/setColors wrap these arrays without copying, so the frame loop
+    // writes straight into them and flags the shared buffers
+    const segPosBuf = (lineGeo.attributes.instanceStart as THREE.InterleavedBufferAttribute).data;
+    const segColBuf = (lineGeo.attributes.instanceColorStart as THREE.InterleavedBufferAttribute).data;
+    const lineMat = new LineMaterial({
+      linewidth: SMALL ? 1 : 1.25,
+      vertexColors: true,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const lines = new LineSegments2(lineGeo, lineMat);
+    lines.frustumCulled = false;
+    group.add(lines);
+
+    // the portrait is drawn before the graph so a dot behind him hides behind
+    // him, while one drifting in front of him stays in front
+    lines.renderOrder = 2;
+    nodes.renderOrder = 3;
 
     // particle shell, outer radius stays well inside the camera distance so no
     // sprite drifts close enough to blow up into a big square
-    const N = SMALL ? 700 : 1500;
-    const pos = new Float32Array(N * 3);
-    for (let i = 0; i < N; i++) {
+    const DUST = SMALL ? 700 : 1500;
+    const pos = new Float32Array(DUST * 3);
+    for (let i = 0; i < DUST; i++) {
       const r = 2.3 + Math.random() * 1.7;
       const th = Math.random() * Math.PI * 2;
       const ph = Math.acos(2 * Math.random() - 1);
@@ -149,15 +199,19 @@ export default function WebGLCanvas() {
       sizeAttenuation: true,
       map: dustTex,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.45,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
     const dust = new THREE.Points(dustGeo, dustMat);
     scene.add(dust);
 
+    // The colour the graph glows in: the scroll track's, or a hovered project's.
+    // Shared with the portrait so the light on him matches what he's looking at.
+    const theme = { value: raw('#D8FF3E') };
+
     // The hero portrait is a real photograph placed in the scene itself rather than
-    // layered over it, so the camera sway gives true parallax against the object,
+    // layered over it, so the camera sway gives true parallax against the graph,
     // and dust drawn after it is depth-tested: some drifts in front, some behind.
     // Colour space left unset for the same reason as raw(): the shader writes these
     // values straight out, so they have to arrive untouched.
@@ -174,7 +228,7 @@ export default function WebGLCanvas() {
         uMap: { value: portraitMap },
         uData: { value: portraitData },
         uLightPos: { value: group.position },
-        uColorC: uniforms.uColorC,
+        uColorC: theme,
         uKey: { value: 0 },
       },
       vertexShader: PORTRAIT_VERT,
@@ -187,35 +241,70 @@ export default function WebGLCanvas() {
     portraitMesh.frustumCulled = false; // visibility is managed against the scroll below
     portraitMesh.visible = false;
     scene.add(portraitMesh);
-    dust.renderOrder = 2;
+    dust.renderOrder = 4;
 
     // He fills the hero from its top rule down to its floor: hair just under the
-    // rule, front shoe standing on the ticker. The name runs across him and blends
-    // with him (difference, set on the title in CSS). Summed from offsetTop, not
-    // read off rects, because the intro animates these with transforms that would
-    // skew a rect read at mount.
+    // rule, front shoe standing on the floor line. The name runs across him and
+    // blends with him (difference, set on the title in CSS). Summed from offsetTop,
+    // not read off rects, because the intro animates these with transforms that
+    // would skew a rect read at mount.
     const brow = document.querySelector<HTMLElement>('.hero__eyebrow');
-    const ticker = document.querySelector<HTMLElement>('.hero .ticker');
+    const floor = document.querySelector<HTMLElement>('.hero .ticker');
     const docTop = (el: HTMLElement) => {
       let y = 0;
       for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
       return y;
     };
     let browTop = 0;
-    let tickerTop = 0;
+    let floorTop = 0;
 
-    // Entrance: once the loader lifts he is lit only by the object's glow for a
+    // Entrance: once the loader lifts he is lit only by the graph's glow for a
     // beat, then the key light comes up.
-    const calmMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let litAt = -1;
+
+    /* ---------- where the sections are ---------- */
+
+    // Measured on every ScrollTrigger refresh, which is when pins have settled
+    // their spacers and section positions are final.
+    let track: { y: number; k: Key }[] = [];
+    const A = { aboutTop: NaN, aboutEnd: NaN, toolkitTop: NaN, toolkitEnd: NaN, contactTop: NaN };
+    const measure = () => {
+      const H = window.innerHeight;
+      const max = Math.max(1, document.documentElement.scrollHeight - H);
+      const edge = (at: string) => {
+        if (at === 'top') return 0;
+        if (at === 'end') return max;
+        const [id, side] = at.split('.');
+        const el = document.getElementById(id);
+        if (!el) return NaN;
+        const r = el.getBoundingClientRect();
+        return (side === 'end' ? r.bottom : r.top) + window.scrollY;
+      };
+      // keys whose section is missing drop out; the rest are kept in order and
+      // clamped so a short section can never fold the track back on itself
+      let last = -Infinity;
+      track = KEYS.flatMap((k) => {
+        const y = edge(k.at) + k.off * H;
+        if (Number.isNaN(y)) return [];
+        last = Math.max(last, Math.min(max, Math.max(0, y)));
+        return [{ y: last, k }];
+      });
+      A.aboutTop = edge('about');
+      A.aboutEnd = edge('about.end');
+      A.toolkitTop = edge('toolkit');
+      A.toolkitEnd = edge('toolkit.end');
+      A.contactTop = edge('contact');
+    };
+    ScrollTrigger.addEventListener('refresh', measure);
 
     // Size off an observer rather than trusting innerWidth at mount: if the
     // canvas mounts before layout settles the viewport can report 0, and a
     // resize event alone may never arrive to correct it.
+    let pointScale = 1;
     const resize = () => {
-      if (brow && ticker) {
+      if (brow && floor) {
         browTop = docTop(brow);
-        tickerTop = docTop(ticker);
+        floorTop = docTop(floor);
       }
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -223,6 +312,10 @@ export default function WebGLCanvas() {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
+      lineMat.resolution.set(w, h);
+      // gl_PointSize is in device pixels: world size times this, over depth
+      pointScale = (h * renderer.getPixelRatio()) / (2 * Math.tan((camera.fov / 2) * DEG2RAD));
+      measure();
     };
     resize();
 
@@ -230,52 +323,131 @@ export default function WebGLCanvas() {
     ro.observe(document.documentElement);
     window.addEventListener('resize', resize);
 
+    /* ---------- hover focus: a project's path, or a discipline ---------- */
+
+    const focusCache = new Map<string, { nodes: Set<number>; edges: boolean[] }>();
+    const getFocus = (key: string) => {
+      let f = focusCache.get(key);
+      if (!f) {
+        f = { nodes: focusNodes(key), edges: EDGES.map((e) => edgeInFocus(e, key)) };
+        focusCache.set(key, f);
+      }
+      return f;
+    };
+
+    const labelEls = labelsEl ? [...labelsEl.children].map((c) => c as HTMLElement) : [];
+    let labelsShown = false;
+
     const cA = new THREE.Color();
     const cB = new THREE.Color();
     const cTarget = new THREE.Color();
+    const focusCol = new THREE.Color();
+    const toolCol = new THREE.Color();
+    const lineCol = new THREE.Color();
+    const v = new THREE.Vector3();
+    const sx = new Float32Array(N);
+    const sy = new Float32Array(N);
+
+    let rotY = 0;
+    let lastP = -1;
+    let lastT = 0;
 
     const unsubscribe = subscribe((t) => {
       const p = view.scrollP;
+      const y = window.scrollY;
+      const H = window.innerHeight;
+      const W = window.innerWidth;
+      const dt = lastT ? Math.min(0.05, t - lastT) : 0;
+      lastT = t;
 
-      let i = 0;
-      while (i < KEYS.length - 2 && p > KEYS[i + 1].at) i++;
-      const a = KEYS[i];
-      const b = KEYS[i + 1];
-      const k = smooth(clamp01((p - a.at) / (b.at - a.at)));
+      /* -- where on the track -- */
+      let a = track[0]?.k ?? KEYS[0];
+      let b = a;
+      let k = 0;
+      if (track.length > 1) {
+        let i = 0;
+        while (i < track.length - 2 && y > track[i + 1].y) i++;
+        a = track[i].k;
+        b = track[i + 1].k;
+        const span = track[i + 1].y - track[i].y;
+        k = span > 0 ? smooth(clamp01((y - track[i].y) / span)) : 1;
+      }
 
+      /* -- section states -- */
+      // the lines draw while the manifesto is read
+      const connectT = Number.isNaN(A.aboutTop)
+        ? 1
+        : clamp01((y - (A.aboutTop - 0.6 * H)) / Math.max(1, A.aboutEnd - 0.5 * H - (A.aboutTop - 0.6 * H)));
+      // the toolkit holds the graph front and centre, labelled
+      const toolkitT = Number.isNaN(A.toolkitTop)
+        ? 0
+        : smooth(
+            Math.min(
+              clamp01((y - (A.toolkitTop - 0.75 * H)) / (0.8 * H)),
+              1 - clamp01((y - (A.toolkitEnd - 0.8 * H)) / (0.55 * H)),
+            ),
+          );
+      // the contact section pulls every dot into one
+      const convergeT = Number.isNaN(A.contactTop) ? 0 : smooth(clamp01((y - (A.contactTop - 1.3 * H)) / (0.9 * H)));
+
+      /* -- place the graph -- */
       const px = lerp(a.x, b.x, k);
       const py = lerp(a.y, b.y, k);
       const pz = lerp(a.z, b.z, k);
       let ps = lerp(a.s, b.s, k);
 
-      // half-extents of the camera frustum at the blob's current depth
+      // half-extents of the camera frustum at the graph's current depth
       const halfH = Math.tan((camera.fov / 2) * DEG2RAD) * (camera.position.z - pz);
       const halfW = halfH * camera.aspect;
 
-      // On portrait screens there is no horizontal room to park the object in,
+      // On portrait screens there is no horizontal room to park the graph in,
       // so trade lateral travel for vertical and pull the scale back a little.
       const portrait = camera.aspect < 1;
       const kx = portrait ? 0.55 : 1;
       const ky = portrait ? 2.6 : 1;
       if (portrait) ps *= 0.78;
 
-      const tx = px * halfW * kx + pointer.x * halfW * 0.06;
-      const ty = py * halfH * ky - pointer.y * halfH * 0.06;
+      // kept inside the frame: the portrait stretch on y would otherwise throw the
+      // upper keys off the top of a phone
+      let nx = Math.max(-0.85, Math.min(0.85, px * kx));
+      let ny = Math.max(-0.85, Math.min(0.85, py * ky));
+      if (portrait) {
+        // A phone has no side to park the toolkit's graph beside its list: it sits
+        // above the list instead, shrunk to the width (the graph spans ~1.5 world
+        // units either side of its centre, a little more with labels). At the end
+        // the point waits over the closing headline rather than up behind the
+        // section before it.
+        ny = lerp(ny, 0.42, toolkitT);
+        ps = lerp(ps, Math.min(ps, (0.86 * halfW) / 1.55), toolkitT);
+        nx = lerp(nx, 0.55, convergeT);
+        ny = lerp(ny, 0.2, convergeT);
+      }
+      const tx = nx * halfW + pointer.x * halfW * 0.06;
+      const ty = ny * halfH - pointer.y * halfH * 0.06;
 
       group.position.x = lerp(group.position.x, tx, 0.08);
       group.position.y = lerp(group.position.y, ty, 0.08);
       group.position.z = lerp(group.position.z, pz, 0.08);
       group.scale.setScalar(lerp(group.scale.x, ps, 0.08));
 
-      group.rotation.y = p * Math.PI * 2.4 + t * 0.06;
-      group.rotation.x = Math.sin(p * Math.PI * 2) * 0.35 + pointer.y * 0.12;
+      // It turns with the scroll everywhere except the toolkit, where it eases
+      // round to face you so the labels can be read. Accumulated rather than set
+      // from the scroll position, so easing to the nearest front never jumps.
+      if (lastP < 0) lastP = p;
+      rotY += ((p - lastP) * Math.PI * 2.4 + (calmMotion ? 0 : dt * 0.06)) * (1 - toolkitT);
+      lastP = p;
+      const front = TAU * Math.round(rotY / TAU) + (calmMotion ? 0 : Math.sin(t * 0.3) * 0.1);
+      rotY = lerp(rotY, front, 0.07 * toolkitT);
+      group.rotation.y = rotY;
+      group.rotation.x = lerp(Math.sin(p * Math.PI * 2) * 0.35 + pointer.y * 0.12, pointer.y * 0.05, toolkitT);
 
-      uniforms.uTime.value = t;
-      uniforms.uAmp.value = lerp(uniforms.uAmp.value, lerp(a.amp, b.amp, k), 0.05);
-      uniforms.uFreq.value = lerp(uniforms.uFreq.value, lerp(a.freq, b.freq, k), 0.05);
-      uniforms.uMouse.value.set(pointer.x, pointer.y);
-      cageUniforms.uAmp.value = uniforms.uAmp.value * 0.7;
+      camera.position.x = lerp(camera.position.x, pointer.x * 0.35, 0.05);
+      camera.position.y = lerp(camera.position.y, -pointer.y * 0.28, 0.05);
+      camera.lookAt(0, 0, 0);
+      camera.updateMatrixWorld();
+      group.updateMatrixWorld(true);
 
+      /* -- colour -- */
       // A hovered work row overrides the scroll track's colour. Easing toward a
       // target rather than assigning it outright means both directions cross-fade.
       if (accent.hex) {
@@ -285,26 +457,135 @@ export default function WebGLCanvas() {
         cB.setStyle(b.c, THREE.LinearSRGBColorSpace);
         cTarget.copy(cA).lerp(cB, k);
       }
-      uniforms.uColorC.value.lerp(cTarget, 0.09);
+      theme.value.lerp(cTarget, 0.09);
+      focusCol.setStyle(accent.hex ?? '#D8FF3E', THREE.LinearSRGBColorSpace);
+      toolCol.copy(theme.value).lerp(BONE, 0.55);
 
-      // Portrait, measured in world units at its own depth. It trails the page by a
-      // tenth on scroll so the type in front reads as the nearer layer.
+      const f = accent.focus ? getFocus(accent.focus) : null;
+      // a phone has no empty side for it, so outside the toolkit it sits behind
+      // text and steps back to stay out of the way
+      const quiet = SMALL ? lerp(0.6, 1, toolkitT) : 1;
+
+      /* -- nodes -- */
+      const drift = calmMotion ? 0 : 1;
+      for (let i = 0; i < N; i++) {
+        const node = NODES[i];
+        const j = i * 3;
+        // loose until the manifesto pulls it into the graph, each dot on its own lag
+        const settle = smooth(clamp01((connectT - L.lag[i]) / 0.7));
+        const gather = 1 - convergeT;
+        const ph = L.phase[i];
+        const amp = drift * lerp(0.07, 0.025, settle) * gather;
+        nodePos[j] = lerp(L.scatter[j], L.graph[j], settle) * gather + Math.sin(t * 0.5 + ph) * amp;
+        nodePos[j + 1] = lerp(L.scatter[j + 1], L.graph[j + 1], settle) * gather + Math.cos(t * 0.43 + ph * 1.3) * amp;
+        nodePos[j + 2] = lerp(L.scatter[j + 2], L.graph[j + 2], settle) * gather + Math.sin(t * 0.37 + ph * 0.7) * amp;
+
+        // where it lands on screen, for the cursor's glow and the labels
+        v.set(nodePos[j], nodePos[j + 1], nodePos[j + 2]).applyMatrix4(group.matrixWorld).project(camera);
+        sx[i] = (v.x * 0.5 + 0.5) * W;
+        sy[i] = (-v.y * 0.5 + 0.5) * H;
+
+        // dots near the cursor light up, like a torch passed over the board
+        let prox = 0;
+        if (FINE) {
+          const d = Math.hypot(sx[i] - pointer.px, sy[i] - pointer.py);
+          prox = Math.max(0, 1 - d / 200);
+          prox *= prox;
+        }
+
+        // a slow, uneven twinkle, so the cloud reads as alive before it is connected
+        let target = (node.hub ? 1 : 0.72) * (calmMotion ? 1 : 0.86 + 0.14 * Math.sin(t * 1.3 + ph * 3.1));
+        if (f) target *= f.nodes.has(i) ? 1.75 : 0.22;
+        target *= (1 + prox * 0.9) * lerp(1, 0.45, convergeT) * quiet;
+        nodeBright[i] = lerp(nodeBright[i], target, 0.1);
+
+        cols[i].lerp(f && f.nodes.has(i) ? focusCol : node.hub ? theme.value : toolCol, 0.1);
+        nodeCol[j] = cols[i].r;
+        nodeCol[j + 1] = cols[i].g;
+        nodeCol[j + 2] = cols[i].b;
+      }
+      nodeGeo.attributes.position.needsUpdate = true;
+      nodeGeo.attributes.aBright.needsUpdate = true;
+      nodeGeo.attributes.aColor.needsUpdate = true;
+      nodeMat.uniforms.uScale.value = pointScale * group.scale.x;
+
+      /* -- lines -- */
+      for (let e = 0; e < E; e++) {
+        const edge = EDGES[e];
+        const ia = edge.a * 3;
+        const ib = edge.b * 3;
+        // each line grows from one end to the other, then shrinks away as the
+        // graph collapses at the end of the page
+        const grow = smooth(clamp01((connectT - L.delay[e]) / 0.35)) * (1 - convergeT);
+        const o = e * 6;
+        segPos[o] = nodePos[ia];
+        segPos[o + 1] = nodePos[ia + 1];
+        segPos[o + 2] = nodePos[ia + 2];
+        segPos[o + 3] = lerp(nodePos[ia], nodePos[ib], grow);
+        segPos[o + 4] = lerp(nodePos[ia + 1], nodePos[ib + 1], grow);
+        segPos[o + 5] = lerp(nodePos[ia + 2], nodePos[ib + 2], grow);
+
+        const lit = f ? f.edges[e] : false;
+        let target = edge.project ? 0.55 : 0.3;
+        if (f) target = lit ? 1.1 : 0.05;
+        edgeInt[e] = lerp(edgeInt[e], target * grow * quiet, 0.12);
+
+        // the line material converts its output to sRGB, so it takes the managed value
+        lineCol
+          .copy(lit ? focusCol : edge.project ? theme.value : toolCol)
+          .convertSRGBToLinear()
+          .multiplyScalar(edgeInt[e]);
+        segCol[o] = lineCol.r;
+        segCol[o + 1] = lineCol.g;
+        segCol[o + 2] = lineCol.b;
+        // fades toward the end that is still being drawn
+        segCol[o + 3] = lineCol.r * 0.55;
+        segCol[o + 4] = lineCol.g * 0.55;
+        segCol[o + 5] = lineCol.b * 0.55;
+      }
+      segPosBuf.needsUpdate = true;
+      segColBuf.needsUpdate = true;
+
+      /* -- labels, in the toolkit only -- */
+      if (labelsEl) {
+        if (toolkitT > 0.01) {
+          v.copy(group.position).project(camera);
+          const cx = (v.x * 0.5 + 0.5) * W;
+          labelsEl.style.opacity = toolkitT.toFixed(3);
+          for (let i = 0; i < labelEls.length; i++) {
+            // a hub's name sits under it, clear of the tools fanned around it;
+            // a tool's name points away from the middle, the way its line does
+            const right = sx[i] >= cx;
+            labelEls[i].style.transform = NODES[i].hub
+              ? `translate3d(${sx[i].toFixed(1)}px,${(sy[i] + 15).toFixed(1)}px,0) translate(-50%,0)`
+              : `translate3d(${(sx[i] + (right ? 11 : -11)).toFixed(1)}px,${sy[i].toFixed(1)}px,0) translate(${right ? '0' : '-100%'},-50%)`;
+            labelEls[i].style.opacity = f ? (f.nodes.has(i) ? '1' : '0.25') : '1';
+          }
+          labelsShown = true;
+        } else if (labelsShown) {
+          labelsEl.style.opacity = '0';
+          labelsShown = false;
+        }
+      }
+
+      /* -- portrait -- */
+      // Measured in world units at its own depth. It trails the page by a tenth on
+      // scroll so the type in front reads as the nearer layer.
       const pHalfH = Math.tan((camera.fov / 2) * DEG2RAD) * (camera.position.z - PORTRAIT_Z);
       const pHalfW = pHalfH * camera.aspect;
-      const toWorld = (2 * pHalfH) / window.innerHeight;
-      const gap = 0.02 * window.innerHeight;
-      // narrower screens run out of width first; then his feet stay on the ticker
-      // and his head simply sits lower
-      const fitH = ((tickerTop - browTop - gap) * toWorld) / (PORTRAIT_FEET - PORTRAIT_HAIR);
+      const toWorld = (2 * pHalfH) / H;
+      const gap = 0.02 * H;
+      // narrower screens run out of width first; then his feet stay on the floor
+      // line and his head simply sits lower
+      const fitH = ((floorTop - browTop - gap) * toWorld) / (PORTRAIT_FEET - PORTRAIT_HAIR);
       const pH = Math.min(fitH, (0.9 * 2 * pHalfW) / PORTRAIT_ASPECT);
-      const feetY = pHalfH - (tickerTop - window.scrollY * 0.9) * toWorld;
+      const feetY = pHalfH - (floorTop - y * 0.9) * toWorld;
       const pY = feetY + (PORTRAIT_FEET - 0.5) * pH;
       portraitMesh.scale.set(pH * PORTRAIT_ASPECT, pH, 1);
-      // left of centre on landscape screens so he looks across at the object
+      // left of centre on landscape screens so he looks across at the graph
       portraitMesh.position.set((portrait ? 0 : -0.28) * pHalfW, pY, PORTRAIT_Z);
       // hidden once scrolled away, and on hero layouts too squat to fit him properly
-      portraitMesh.visible =
-        portraitReady && !!ticker && pH > 0.3 * 2 * pHalfH && pY - pH / 2 < pHalfH;
+      portraitMesh.visible = portraitReady && !!floor && pH > 0.3 * 2 * pHalfH && pY - pH / 2 < pHalfH;
 
       if (litAt < 0 && !document.body.classList.contains('is-loading')) litAt = t;
       const lit = calmMotion ? 1 : litAt < 0 ? 0 : smooth(clamp01((t - litAt - 0.5) / 1.4));
@@ -313,21 +594,18 @@ export default function WebGLCanvas() {
       dust.rotation.y = -t * 0.03 + p * 1.2;
       dust.rotation.x = p * 0.6;
 
-      camera.position.x = lerp(camera.position.x, pointer.x * 0.35, 0.05);
-      camera.position.y = lerp(camera.position.y, -pointer.y * 0.28, 0.05);
-      camera.lookAt(0, 0, 0);
-
       renderer.render(scene, camera);
     });
 
     return () => {
       unsubscribe();
+      ScrollTrigger.removeEventListener('refresh', measure);
       ro.disconnect();
       window.removeEventListener('resize', resize);
-      blobGeo.dispose();
-      blobMat.dispose();
-      cageGeo.dispose();
-      cageMat.dispose();
+      nodeGeo.dispose();
+      nodeMat.dispose();
+      lineGeo.dispose();
+      lineMat.dispose();
       dustGeo.dispose();
       dustMat.dispose();
       dustTex.dispose();
@@ -339,5 +617,18 @@ export default function WebGLCanvas() {
     };
   }, []);
 
-  return <canvas id="gl" ref={canvasRef} />;
+  return (
+    <>
+      <canvas id="gl" ref={canvasRef} />
+      {/* names for the dots, placed over the graph while the Toolkit holds it; the
+          Toolkit section carries the same list as real text for screen readers */}
+      <div className="graph-labels" ref={labelsRef} aria-hidden="true">
+        {NODES.map((n) => (
+          <span className={n.hub ? 'graph-label graph-label--hub' : 'graph-label'} key={n.id}>
+            {n.label}
+          </span>
+        ))}
+      </div>
+    </>
+  );
 }

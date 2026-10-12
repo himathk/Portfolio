@@ -71,13 +71,13 @@ export default function ScrollAnimations() {
       scrollTrigger: { trigger: '.manifesto__grid', start: 'top 85%' },
     });
 
-    gsap.from('.toolrow', {
-      y: 44,
+    gsap.from('.toolkit__group', {
+      y: 30,
       opacity: 0,
-      duration: 0.95,
+      duration: 0.9,
       ease: 'expo.out',
-      stagger: 0.08,
-      scrollTrigger: { trigger: '.toolset', start: 'top 82%' },
+      stagger: 0.07,
+      scrollTrigger: { trigger: '.toolkit__legend', start: 'top 85%' },
     });
 
     gsap.from('.work-row', {

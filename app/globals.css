@@ -273,41 +273,57 @@ main{ position:relative; }
 
 /* =========================================================
    TOOLKIT
+   The skills graph is the toolkit: while this section is on screen the WebGL
+   scene holds it front and centre with every dot named (.graph-labels). The
+   stage is tall so the graph stays put for a while; the list beside it is the
+   index, and the whole toolkit wherever the drawn labels aren't shown.
    ========================================================= */
-.toolkit{ padding:clamp(4rem,10vw,9rem) 0 clamp(1rem,3vw,3rem); }
-.toolset{ border-top:1px solid var(--line); }
-
-.toolrow{
-  display:grid; grid-template-columns:minmax(8rem,15%) 1fr;
-  gap:clamp(1rem,3vw,3rem); align-items:start;
-  padding:clamp(1.3rem,2.8vw,2.4rem) var(--pad);
-  border-bottom:1px solid var(--line);
-  transition:background .5s var(--ease);
+.toolkit{ padding:clamp(4rem,10vw,9rem) 0 0; }
+.toolkit__stage{ position:relative; height:170svh; padding:0 var(--pad); }
+.toolkit__legend{
+  position:sticky; top:calc(var(--nav-h) + clamp(2rem,6svh,4rem));
+  width:min(26rem,30vw); border-top:1px solid var(--line);
 }
-.toolrow:hover{ background:var(--bg-2); }
-.toolrow__label{ color:var(--acid); padding-top:.45em; }
-
-.toolrow__items{
-  display:flex; flex-wrap:wrap; align-items:baseline; gap:.12em clamp(.7rem,2vw,1.8rem);
-  /* the min term is set by the longest entry, "After Effects" at the featured
-     multiplier still has to clear a 320px viewport without overflowing */
-  --tool-fs:clamp(1.25rem,4.2vw,7rem);
-}
-.tool{
-  font-weight:900; font-variation-settings:'wdth' 112,'wght' 900;
-  font-size:var(--tool-fs);
-  line-height:1.04; letter-spacing:-.035em; text-transform:uppercase;
+.toolkit__group{
+  display:grid; grid-template-columns:1fr auto; align-items:baseline; gap:.3rem 1rem;
+  padding:clamp(.8rem,1.6svh,1.2rem) 0; border-bottom:1px solid var(--line);
   transition:color .35s var(--ease);
 }
-.tool:hover{ color:var(--acid); }
-/* em would resolve against the parent, not the clamped .tool size, scale the
-   variable instead so the featured items are genuinely larger */
-.tool--key{ color:var(--acid); font-size:calc(var(--tool-fs) * 1.18); }
-
-@media (max-width:640px){
-  .toolrow{ grid-template-columns:1fr; gap:.7rem; }
-  .toolrow__label{ padding-top:0; }
+.toolkit__name{
+  font-weight:800; font-variation-settings:'wdth' 110,'wght' 800; text-transform:uppercase;
+  font-size:clamp(1rem,1.5vw,1.9rem); letter-spacing:-.02em; line-height:1;
 }
+.toolkit__count{ color:var(--acid); }
+.toolkit__group:hover{ color:var(--acid); }
+/* the graph names every tool on desktop, so here they're for screen readers only */
+.toolkit__tools{
+  grid-column:1 / -1;
+  position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
+}
+
+/* labels for the graph's dots, projected from the WebGL scene every frame */
+.graph-labels{ position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0; overflow:hidden; }
+.graph-label{
+  position:absolute; left:0; top:0; white-space:nowrap; will-change:transform;
+  font-family:var(--font-mono),ui-monospace,monospace; font-size:clamp(.6rem,.7vw,.95rem);
+  letter-spacing:.1em; text-transform:uppercase; color:rgba(236,234,227,.86);
+  text-shadow:0 1px 10px rgba(8,7,10,.95), 0 0 3px rgba(8,7,10,.9);
+  transition:opacity .35s var(--ease);
+}
+.graph-label--hub{ color:var(--acid); font-size:clamp(.68rem,.86vw,1.15rem); letter-spacing:.14em; }
+
+/* phones: only the disciplines are named on the graph, so the list carries the tools */
+@media (max-width:900px){
+  .toolkit__stage{ height:auto; min-height:115svh; display:flex; flex-direction:column; justify-content:flex-end; padding-bottom:clamp(2rem,8vw,4rem); }
+  .toolkit__legend{ position:relative; top:auto; width:100%; }
+  .toolkit__tools{ position:static; width:auto; height:auto; overflow:visible; clip:auto; white-space:normal; color:var(--fg-dim); line-height:1.5; }
+  .graph-label:not(.graph-label--hub){ display:none; }
+}
+/* no WebGL: no graph to read, so the list is the toolkit */
+.no-gl .toolkit__stage{ height:auto; min-height:0; padding-bottom:clamp(3rem,8vw,6rem); }
+.no-gl .toolkit__legend{ position:relative; top:auto; width:100%; }
+.no-gl .toolkit__tools{ position:static; width:auto; height:auto; overflow:visible; clip:auto; white-space:normal; color:var(--fg-dim); }
+.no-gl .graph-labels{ display:none; }
 
 /* =========================================================
    OUTLINE STRIP
