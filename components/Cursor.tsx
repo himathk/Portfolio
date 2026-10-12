@@ -3,7 +3,15 @@
 import { useEffect, useRef } from 'react';
 import { subscribe, pointer, lerp } from '@/lib/motion';
 
-const LABELS: Record<string, string> = { hover: '', view: 'View', mail: 'Say hi', flip: 'Flip', pull: 'Pull', back: 'Back' };
+const LABELS: Record<string, string> = {
+  hover: '',
+  view: 'View',
+  mail: 'Say hi',
+  flip: 'Flip',
+  load: 'Load',
+  eject: 'Eject',
+  next: 'Next',
+};
 
 export default function Cursor() {
   const dot = useRef<HTMLDivElement>(null);

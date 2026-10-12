@@ -30,11 +30,10 @@ const KEYS: Key[] = [
   // toolkit: front and centre, turned to face you, labelled
   { at: 'toolkit', off: 0.45, x: 0.2, y: -0.06, z: 0.2, s: 1.0, c: '#D8FF3E' },
   { at: 'toolkit.end', off: -1.0, x: 0.2, y: -0.06, z: 0.2, s: 1.0, c: '#D8FF3E' },
-  // work: the reels take the stage, so it steps back to the top right corner,
-  // small, where hovering a project still lights its path. It holds there
-  // through the Aegis board, which covers the screen and would hide any move.
-  { at: 'work', off: 0.6, x: 0.8, y: 0.62, z: -2.6, s: 0.46, c: '#D8FF3E' },
-  { at: 'aegis', off: 0, x: 0.8, y: 0.62, z: -2.6, s: 0.46, c: '#4CC9FF' },
+  // work: the lights go down for the projector, so it slips off the right edge,
+  // and stays out through the Aegis board, which covers the screen anyway
+  { at: 'work', off: 0.25, x: 1.7, y: 0.5, z: -2.6, s: 0.46, c: '#D8FF3E' },
+  { at: 'aegis', off: 0, x: 1.7, y: 0.5, z: -2.6, s: 0.46, c: '#4CC9FF' },
   { at: 'snapvibe', off: 0, x: 0.5, y: 0.1, z: -1.4, s: 0.6, c: '#D4AF37' },
   { at: 'designs', off: 0, x: 0.0, y: 0.32, z: -1.8, s: 0.72, c: '#D8FF3E' },
   // beside the timeline, not behind it
@@ -410,8 +409,12 @@ export default function WebGLCanvas() {
       if (portrait) ps *= 0.78;
 
       // kept inside the frame: the portrait stretch on y would otherwise throw the
-      // upper keys off the top of a phone
-      let nx = Math.max(-0.85, Math.min(0.85, px * kx));
+      // upper keys off the top of a phone. A key set past the edge (|x| > 1) is
+      // there to take the graph off screen, so towards one the limit and the
+      // portrait squeeze both ease off.
+      const offK = clamp01((Math.abs(px) - 0.85) / 0.3);
+      const xLim = Math.max(0.85, Math.abs(px));
+      let nx = Math.max(-xLim, Math.min(xLim, px * lerp(kx, 1, offK)));
       let ny = Math.max(-0.85, Math.min(0.85, py * ky));
       if (portrait) {
         // A phone has no side to park the toolkit's graph beside its list: it sits
