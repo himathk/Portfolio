@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { play } from '@/lib/sfx';
 
 type Card = {
   n: string;
@@ -108,7 +109,9 @@ export default function Gallery() {
   useEffect(() => {
     if (!flipped) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFlipped(null);
+      if (e.key !== 'Escape') return;
+      setFlipped(null);
+      play('flip');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -165,7 +168,10 @@ export default function Gallery() {
                       aria-pressed={isFlipped}
                       aria-label={`Turn over the ${c.title} print`}
                       data-cursor="flip"
-                      onClick={() => setFlipped(isFlipped ? null : c.title)}
+                      onClick={() => {
+                        setFlipped(isFlipped ? null : c.title);
+                        play('flip');
+                      }}
                     />
                   ) : (
                     c.href && (

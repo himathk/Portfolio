@@ -37,9 +37,9 @@ const KEYS: Key[] = [
   { at: 'designs', off: 0, x: 0.0, y: 0.32, z: -1.8, s: 0.72, c: '#D8FF3E' },
   // beside the timeline, not behind it
   { at: 'education', off: 0, x: 0.52, y: 0.04, z: -1.4, s: 0.66, c: '#D8FF3E' },
-  // up over the closing headline, pulling into one point as it goes
-  { at: 'contact', off: -0.8, x: 0.3, y: 0.3, z: 0.0, s: 1.0, c: '#D8FF3E' },
-  { at: 'end', off: 0, x: 0.6, y: 0.62, z: 0.4, s: 1.1, c: '#FF4D1C' },
+  // up the right of the closing headline, pulling into one point as it goes
+  { at: 'contact', off: -0.8, x: 0.7, y: 0.4, z: 0.0, s: 1.0, c: '#D8FF3E' },
+  { at: 'end', off: 0, x: 0.62, y: 0.62, z: 0.4, s: 1.1, c: '#FF4D1C' },
 ];
 
 const DEG2RAD = Math.PI / 180;
@@ -415,12 +415,12 @@ export default function WebGLCanvas() {
         // A phone has no side to park the toolkit's graph beside its list: it sits
         // above the list instead, shrunk to the width (the graph spans ~1.5 world
         // units either side of its centre, a little more with labels). At the end
-        // the point waits over the closing headline rather than up behind the
-        // section before it.
+        // the point waits in the top corner, under the nav, where nothing else
+        // scrolls past by then.
         ny = lerp(ny, 0.42, toolkitT);
         ps = lerp(ps, Math.min(ps, (0.86 * halfW) / 1.55), toolkitT);
-        nx = lerp(nx, 0.55, convergeT);
-        ny = lerp(ny, 0.2, convergeT);
+        nx = lerp(nx, 0.78, convergeT);
+        ny = lerp(ny, 0.8, convergeT);
       }
       const tx = nx * halfW + pointer.x * halfW * 0.06;
       const ty = ny * halfH - pointer.y * halfH * 0.06;
@@ -496,7 +496,8 @@ export default function WebGLCanvas() {
         // a slow, uneven twinkle, so the cloud reads as alive before it is connected
         let target = (node.hub ? 1 : 0.72) * (calmMotion ? 1 : 0.86 + 0.14 * Math.sin(t * 1.3 + ph * 3.1));
         if (f) target *= f.nodes.has(i) ? 1.75 : 0.22;
-        target *= (1 + prox * 0.9) * lerp(1, 0.45, convergeT) * quiet;
+        // gathered into one, it is a single star, not a flare over the headline
+        target *= (1 + prox * 0.9) * lerp(1, 0.3, convergeT) * quiet;
         nodeBright[i] = lerp(nodeBright[i], target, 0.1);
 
         cols[i].lerp(f && f.nodes.has(i) ? focusCol : node.hub ? theme.value : toolCol, 0.1);
@@ -507,7 +508,7 @@ export default function WebGLCanvas() {
       nodeGeo.attributes.position.needsUpdate = true;
       nodeGeo.attributes.aBright.needsUpdate = true;
       nodeGeo.attributes.aColor.needsUpdate = true;
-      nodeMat.uniforms.uScale.value = pointScale * group.scale.x;
+      nodeMat.uniforms.uScale.value = pointScale * group.scale.x * lerp(1, 0.55, convergeT);
 
       /* -- lines -- */
       for (let e = 0; e < E; e++) {

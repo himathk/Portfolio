@@ -1,4 +1,5 @@
 import Clock from './Clock';
+import SoundToggle from './SoundToggle';
 
 const LINKS = [
   { href: '#toolkit', label: 'Toolkit' },
@@ -29,6 +30,7 @@ export default function Nav() {
           <i /> Open for work
         </span>
         <Clock />
+        <SoundToggle />
       </div>
     </header>
   );

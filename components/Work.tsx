@@ -7,6 +7,7 @@ import { useGSAP } from '@gsap/react';
 import { subscribe, pointer, accent, lerp } from '@/lib/motion';
 import AegisCase, { AegisOpening, AegisEnd } from '@/components/AegisCase';
 import SnapVibe from '@/components/SnapVibe';
+import { play } from '@/lib/sfx';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -293,6 +294,8 @@ export default function Work() {
           const prog = fold.progress();
           if (!stamped && prog > 0.9) {
             stamped = true;
+            // the sound lands with the stamp, at the end of its fall
+            gsap.delayedCall(0.2, () => play('stamp'));
             gsap
               .timeline()
               .fromTo(stamp, { autoAlpha: 0, scale: 2.1, rotation: -17 }, { autoAlpha: 1, scale: 1, rotation: -9, duration: 0.22, ease: 'power4.in' })

@@ -135,6 +135,14 @@ export default function ScrollAnimations() {
       scrollTrigger: { trigger: '.contact', start: 'top 72%' },
     });
 
+    // end credits roll up over the last stretch of the page
+    gsap.from('.credits__roll', {
+      yPercent: 40,
+      opacity: 0,
+      ease: 'none',
+      scrollTrigger: { trigger: '.credits', start: 'top bottom', end: 'bottom bottom', scrub: 0.6 },
+    });
+
     // Window resize / device rotation leaves the pin spacer at its old width,
     // which shows up as phantom horizontal overflow until a re-measure.
     let resizeTimer = 0;
