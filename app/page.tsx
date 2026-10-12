@@ -7,7 +7,6 @@ import Nav from '@/components/Nav';
 import Hero from '@/components/Hero';
 import Manifesto from '@/components/Manifesto';
 import Toolkit from '@/components/Toolkit';
-import Strip from '@/components/Strip';
 import Work from '@/components/Work';
 import Gallery from '@/components/Gallery';
 import Education from '@/components/Education';
@@ -34,7 +33,6 @@ export default function Home() {
         <Hero />
         <Manifesto />
         <Toolkit />
-        <Strip />
         <Work />
         <Gallery />
         <Education />

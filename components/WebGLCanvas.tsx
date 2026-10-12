@@ -249,7 +249,7 @@ export default function WebGLCanvas() {
     // not read off rects, because the intro animates these with transforms that
     // would skew a rect read at mount.
     const brow = document.querySelector<HTMLElement>('.hero__eyebrow');
-    const floor = document.querySelector<HTMLElement>('.hero .ticker');
+    const floor = document.querySelector<HTMLElement>('.hero__floor');
     const docTop = (el: HTMLElement) => {
       let y = 0;
       for (let n: HTMLElement | null = el; n; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;

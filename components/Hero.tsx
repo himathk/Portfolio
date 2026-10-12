@@ -1,5 +1,3 @@
-const TICKER = 'DESIGN ✦ MOTION ✦ FILM ✦ CODE ✦ UI/UX ✦ FRONT-END ✦ BRAND ✦';
-
 export default function Hero() {
   return (
     <section className="hero">
@@ -45,12 +43,10 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="ticker">
-        <div className="ticker__track">
-          <span>{TICKER}</span>
-          <span>{TICKER}</span>
-          <span>{TICKER}</span>
-        </div>
+      {/* the floor he stands on: a still rule mirroring the one at the top of the hero */}
+      <div className="hero__floor mono">
+        <span>Design ✦ Motion ✦ Film ✦ Code</span>
+        <span>Colombo, Sri Lanka</span>
       </div>
     </section>
   );

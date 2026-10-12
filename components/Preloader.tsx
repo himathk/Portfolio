@@ -31,7 +31,7 @@ export default function Preloader() {
     const bail = window.setTimeout(() => {
       if (document.body.classList.contains('is-loading')) {
         gsap.set(loader, { display: 'none' });
-        gsap.set('.hero__title .line__i, [data-anim="fade"], .ticker', { clearProps: 'all' });
+        gsap.set('.hero__title .line__i, [data-anim="fade"], .hero__floor', { clearProps: 'all' });
         release();
       }
     }, 9000);
@@ -77,7 +77,7 @@ export default function Preloader() {
           ease: 'power3.out',
           stagger: 0.12,
         }, '<0.3')
-        .from('.ticker', { yPercent: 100, duration: 0.9, ease: 'expo.out' }, '<0.1')
+        .from('.hero__floor', { opacity: 0, y: 14, duration: 0.9, ease: 'expo.out' }, '<0.1')
         .set(loader, { display: 'none' });
     });
 

@@ -220,14 +220,12 @@ main{ position:relative; }
 @keyframes bob{ 0%,100%{transform:translateY(0);opacity:.5} 50%{transform:translateY(7px);opacity:1} }
 @media (max-width:700px){ .scrollcue{ display:none; } }
 
-/* ticker */
-.ticker{ overflow:hidden; background:var(--acid); color:#000; padding:.55rem 0; border-block:1px solid #000; }
-.ticker__track{ display:flex; width:max-content; animation:slide 26s linear infinite; }
-.ticker__track span{
-  font-weight:900; font-variation-settings:'wdth' 112,'wght' 900;
-  font-size:clamp(.85rem,1.6vw,2.1rem); letter-spacing:-.01em; padding-right:2.5rem; white-space:nowrap;
+/* the floor: a still rule with the disciplines and the place, mirroring the eyebrow */
+.hero__floor{
+  display:flex; gap:1.2rem; justify-content:space-between;
+  margin:0 var(--pad); padding:.8rem 0 clamp(.9rem,2svh,1.4rem);
+  border-top:1px solid var(--line); color:var(--fg-dim);
 }
-@keyframes slide{ to{ transform:translateX(-33.333%); } }
 
 /* =========================================================
    SHARED SECTION FURNITURE
@@ -324,19 +322,6 @@ main{ position:relative; }
 .no-gl .toolkit__legend{ position:relative; top:auto; width:100%; }
 .no-gl .toolkit__tools{ position:static; width:auto; height:auto; overflow:visible; clip:auto; white-space:normal; color:var(--fg-dim); }
 .no-gl .graph-labels{ display:none; }
-
-/* =========================================================
-   OUTLINE STRIP
-   ========================================================= */
-.strip{ overflow:hidden; padding:clamp(1rem,2vw,2rem) 0; border-block:1px solid var(--line); }
-.strip__track{ display:flex; width:max-content; gap:2.5rem; will-change:transform; }
-.strip__track span{
-  font-size:clamp(3rem,11vw,17rem); font-weight:900;
-  font-variation-settings:'wdth' 122,'wght' 900;
-  letter-spacing:-.045em; line-height:.9; white-space:nowrap; text-transform:uppercase;
-}
-.strip__track .outline{ color:transparent; -webkit-text-stroke:1.5px var(--fg); }
-.strip__track .fill{ color:var(--acid); }
 
 /* =========================================================
    WORK LIST
@@ -933,7 +918,8 @@ body:has(.live__view iframe:hover) .cursor{ opacity:0; }
   .sec-head{ grid-template-columns:1fr; }
   .sec-head .sec-count{ grid-column:1; grid-row:3; padding-bottom:0; padding-top:.9rem; }
 
-  .hero__eyebrow{ font-size:.6rem; }
+  .hero__eyebrow,.hero__floor{ font-size:.6rem; }
+  .hero__floor span{ white-space:nowrap; }
   .hero__foot{ margin-top:1.4rem; }
   .hero__blurb{ max-width:100%; }
 
