@@ -80,13 +80,13 @@ export default function ScrollAnimations() {
       scrollTrigger: { trigger: '.toolkit__legend', start: 'top 85%' },
     });
 
-    gsap.from('.work-row', {
-      yPercent: 45,
+    gsap.from('.reels__item', {
+      y: 40,
       opacity: 0,
-      duration: 1.1,
+      duration: 1,
       ease: 'expo.out',
       stagger: 0.07,
-      scrollTrigger: { trigger: '.worklist', start: 'top 82%' },
+      scrollTrigger: { trigger: '.reels__index', start: 'top 85%' },
     });
 
     // Pinned horizontal gallery, desktop/tablet only. On touch-sized screens

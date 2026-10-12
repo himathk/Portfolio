@@ -23,16 +23,18 @@ gsap.registerPlugin(ScrollTrigger);
    off-screen for most of the page. */
 type Key = { at: string; off: number; x: number; y: number; z: number; s: number; c: string };
 const KEYS: Key[] = [
-  // hero: a loose cloud on the right, the thing he is looking at
+  // hero: a loose cloud on the right, the thing the portrait is looking at
   { at: 'top', off: 0, x: 0.54, y: 0.24, z: 0.0, s: 1.04, c: '#D8FF3E' },
   // about: left of the manifesto, where its lines draw in
   { at: 'about', off: 0.2, x: -0.46, y: 0.04, z: -0.8, s: 0.82, c: '#FF4D1C' },
   // toolkit: front and centre, turned to face you, labelled
   { at: 'toolkit', off: 0.45, x: 0.2, y: -0.06, z: 0.2, s: 1.0, c: '#D8FF3E' },
   { at: 'toolkit.end', off: -1.0, x: 0.2, y: -0.06, z: 0.2, s: 1.0, c: '#D8FF3E' },
-  // work: in the open space right of the titles, where hovering a row lights its path
-  { at: 'work', off: 0.6, x: 0.52, y: -0.14, z: -0.5, s: 0.82, c: '#D8FF3E' },
-  { at: 'aegis', off: 0, x: -0.53, y: 0.05, z: -1.9, s: 0.68, c: '#4CC9FF' },
+  // work: the reels take the stage, so it steps back to the top right corner,
+  // small, where hovering a project still lights its path. It holds there
+  // through the Aegis board, which covers the screen and would hide any move.
+  { at: 'work', off: 0.6, x: 0.8, y: 0.62, z: -2.6, s: 0.46, c: '#D8FF3E' },
+  { at: 'aegis', off: 0, x: 0.8, y: 0.62, z: -2.6, s: 0.46, c: '#4CC9FF' },
   { at: 'snapvibe', off: 0, x: 0.5, y: 0.1, z: -1.4, s: 0.6, c: '#D4AF37' },
   { at: 'designs', off: 0, x: 0.0, y: 0.32, z: -1.8, s: 0.72, c: '#D8FF3E' },
   // beside the timeline, not behind it
@@ -172,8 +174,8 @@ export default function WebGLCanvas() {
     lines.frustumCulled = false;
     group.add(lines);
 
-    // the portrait is drawn before the graph so a dot behind him hides behind
-    // him, while one drifting in front of him stays in front
+    // the portrait is drawn before the graph so a dot behind the figure hides
+    // behind it, while one drifting in front stays in front
     lines.renderOrder = 2;
     nodes.renderOrder = 3;
 
@@ -207,7 +209,7 @@ export default function WebGLCanvas() {
     scene.add(dust);
 
     // The colour the graph glows in: the scroll track's, or a hovered project's.
-    // Shared with the portrait so the light on him matches what he's looking at.
+    // Shared with the portrait so the light on the figure matches what it's looking at.
     const theme = { value: raw('#D8FF3E') };
 
     // The hero portrait is a real photograph placed in the scene itself rather than
@@ -258,7 +260,7 @@ export default function WebGLCanvas() {
     let browTop = 0;
     let floorTop = 0;
 
-    // Entrance: once the loader lifts he is lit only by the graph's glow for a
+    // Entrance: once the loader lifts the portrait is lit only by the graph's glow for a
     // beat, then the key light comes up.
     let litAt = -1;
 
@@ -576,14 +578,14 @@ export default function WebGLCanvas() {
       const pHalfW = pHalfH * camera.aspect;
       const toWorld = (2 * pHalfH) / H;
       const gap = 0.02 * H;
-      // narrower screens run out of width first; then his feet stay on the floor
-      // line and his head simply sits lower
+      // narrower screens run out of width first; then the feet stay on the floor
+      // line and the head simply sits lower
       const fitH = ((floorTop - browTop - gap) * toWorld) / (PORTRAIT_FEET - PORTRAIT_HAIR);
       const pH = Math.min(fitH, (0.9 * 2 * pHalfW) / PORTRAIT_ASPECT);
       const feetY = pHalfH - (floorTop - y * 0.9) * toWorld;
       const pY = feetY + (PORTRAIT_FEET - 0.5) * pH;
       portraitMesh.scale.set(pH * PORTRAIT_ASPECT, pH, 1);
-      // left of centre on landscape screens so he looks across at the graph
+      // left of centre on landscape screens so the portrait looks across at the graph
       portraitMesh.position.set((portrait ? 0 : -0.28) * pHalfW, pY, PORTRAIT_Z);
       // hidden once scrolled away, and on hero layouts too squat to fit him properly
       portraitMesh.visible = portraitReady && !!floor && pH > 0.3 * 2 * pHalfH && pY - pH / 2 < pHalfH;

@@ -43,7 +43,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* the floor he stands on: a still rule mirroring the one at the top of the hero */}
+      {/* the floor the portrait stands on: a still rule mirroring the one at the top of the hero */}
       <div className="hero__floor mono">
         <span>Design ✦ Motion ✦ Film ✦ Code</span>
         <span>Colombo, Sri Lanka</span>
