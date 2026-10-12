@@ -707,27 +707,108 @@ body:has(.live__view iframe:hover) .cursor{ opacity:0; }
 /* Cards take the posters' own A-size proportion, so nothing is cropped. Width is
    also capped by the screen height so a card and its caption always fit the pin. */
 .card{
+  --drop:0px;
   flex:0 0 auto; position:relative;
   width:clamp(200px, min(24vw, calc((100svh - 15rem) / 1.414)), 420px);
-  transition:transform .6s var(--ease);
+  transform:translateY(var(--drop));
+  transition:filter .5s var(--ease), opacity .5s var(--ease);
 }
-.card__art{ position:relative; aspect-ratio:1/1.414; overflow:hidden; background:#0b0d18; }
-.card__art::after{
-  content:''; position:absolute; inset:0; border:1px solid rgba(255,255,255,.18); pointer-events:none;
-}
-.card__art img{ display:block; width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
-.card:hover .card__art img{ transform:scale(1.04); }
-.card__cap{ display:grid; gap:.4rem; margin-top:1rem; }
-.card__credit{ color:var(--fg-dim); }
-.card__link{ position:absolute; inset:0; z-index:1; }
-.card:hover{ transform:translateY(-14px) scale(1.015); }
+.card:nth-child(even){ --drop:clamp(14px,3vw,42px); }
+/* one print in hand, the rest of the table falls out of focus */
+.gallery__track.is-focus .card:not(.is-lifted){ filter:blur(3px) brightness(.55); }
+.card__cap{ display:grid; gap:.4rem; margin-top:1.1rem; }
 .card .mono{ color:rgba(255,255,255,.65); }
 .card .card__credit{ color:var(--fg-dim); }
 .card h4{ font-size:clamp(1.3rem,2.2vw,2.6rem); }
+/* the cursor says "Flip" on pointer devices; touch gets the words instead */
+.card__hint{ display:none; }
+@media (hover:none){ .card .card__hint{ display:block; color:var(--acid); } }
 /* phones swipe the gallery instead of pinning it: give each poster most of the screen */
 @media (max-width:900px){ .card{ width:min(66vw,320px); } }
-.card:nth-child(even){ transform:translateY(clamp(14px,3vw,42px)); }
-.card:nth-child(even):hover{ transform:translateY(calc(clamp(14px,3vw,42px) - 14px)) scale(1.015); }
+
+/* The print: a paper-edged poster that lifts, leans toward the pointer and turns
+   over. The lean lives on .print and the turn on .print__body, so the two
+   rotations never fight over one transform. */
+.print{
+  --rx:0deg; --ry:0deg; --lift:0px; --mx:50%; --my:50%;
+  --paper:#ECE8DD;
+  position:relative; aspect-ratio:1/1.414;
+  transform:perspective(1100px) translateY(var(--lift)) rotateX(var(--rx)) rotateY(var(--ry));
+  transform-style:preserve-3d;
+  transition:transform .7s var(--ease);
+}
+.card.is-lifted .print{ --lift:-14px; transition:transform .2s ease-out; }
+/* Inside a 3D context hit-testing goes by depth, not DOM order, and the art can
+   win over the hit area laid on top of it. Nothing in the body is interactive. */
+.print__body{
+  position:absolute; inset:0; transform-style:preserve-3d; pointer-events:none;
+  transition:transform .95s var(--ease);
+}
+.print.is-flipped .print__body{ transform:rotateY(180deg); }
+.print__face{
+  position:absolute; inset:0; background:var(--paper);
+  padding:clamp(5px,.7vw,10px);
+  backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  /* contact shadow plus a long soft one, both deepen as the print comes up off the table */
+  box-shadow:0 1px 2px rgba(0,0,0,.5), 0 18px 34px -14px rgba(0,0,0,.75);
+  transition:box-shadow .5s var(--ease);
+}
+.card.is-lifted .print__face{ box-shadow:0 2px 3px rgba(0,0,0,.45), 0 46px 70px -22px rgba(0,0,0,.9); }
+.print__art{ position:relative; width:100%; height:100%; overflow:hidden; background:#0b0d18; }
+.print__art img{ display:block; width:100%; height:100%; object-fit:cover; }
+
+/* foil in the site's three inks, swept by the pointer, plus a soft specular spot */
+.print__foil,.print__shine{ position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .45s var(--ease); }
+.print__foil{
+  mix-blend-mode:color-dodge;
+  background:linear-gradient(112deg, transparent 22%, rgba(216,255,62,.55) 36%, rgba(76,201,255,.5) 47%, rgba(255,77,28,.45) 58%, transparent 74%);
+  background-size:300% 300%; background-position:var(--mx) var(--my);
+}
+.print__shine{
+  mix-blend-mode:soft-light;
+  background:radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 52%);
+}
+.card.is-lifted .print__foil{ opacity:.55; }
+.card.is-lifted .print__shine{ opacity:1; }
+
+/* the verso: paper, a pencilled note and the studio's red seal */
+.print__back{
+  transform:rotateY(180deg);
+  display:flex; flex-direction:column; gap:.7rem;
+  padding:clamp(1rem,1.8vw,1.7rem); color:#17161b;
+  background:
+    radial-gradient(120% 90% at 30% 10%, rgba(255,255,255,.55), transparent 60%),
+    var(--paper);
+}
+.print__back > *{ position:relative; }
+.print__back > .print__ghost{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+  transform:scaleX(-1); opacity:.1; filter:grayscale(1) contrast(1.15) blur(.5px);
+  mix-blend-mode:multiply; pointer-events:none;
+  /* faint where the paper is bare, gone where the writing starts */
+  -webkit-mask-image:linear-gradient(to bottom, #000 0%, #000 40%, transparent 78%);
+          mask-image:linear-gradient(to bottom, #000 0%, #000 40%, transparent 78%);
+}
+.print__back-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
+.card .print__back .mono{ color:rgba(23,22,27,.55); }
+.print__seal{
+  display:grid; place-items:center; flex:none; width:3.4em; height:3.4em; border-radius:50%;
+  border:2px solid #C8361F; color:#C8361F; letter-spacing:0; font-weight:700;
+  transform:rotate(-12deg); opacity:.82; mix-blend-mode:multiply;
+}
+.print__back-title{
+  margin-top:auto; font-weight:900; font-variation-settings:'wdth' 118,'wght' 900;
+  font-size:clamp(1.3rem,2.3vw,2.7rem); line-height:.88; letter-spacing:-.035em; text-transform:uppercase;
+  overflow-wrap:anywhere;
+}
+.print__back-note{
+  padding-top:.8rem; border-top:1px solid rgba(23,22,27,.16);
+  font-size:clamp(1rem,1.35vw,1.55rem); line-height:1.25;
+}
+
+/* one hit area over the whole print: the turn-over button, or the case study link */
+.print__hit{ position:absolute; inset:0; z-index:2; display:block; padding:0; border:0; background:none; color:inherit; }
+.print__hit:focus-visible{ outline:2px solid var(--acid); outline-offset:6px; }
 
 .gallery__end{ flex:0 0 auto; padding-inline:clamp(2rem,8vw,10rem); }
 .gallery__end h3{ font-size:clamp(2.4rem,9vw,11rem); color:var(--acid); text-transform:none; letter-spacing:-.02em; line-height:.9; }
@@ -822,7 +903,7 @@ body:has(.live__view iframe:hover) .cursor{ opacity:0; }
   .gallery__end{ display:flex; align-items:center; padding-inline:clamp(2rem,10vw,5rem); }
 
   /* stop nth-child offsets stacking on a short rail */
-  .card:nth-child(even){ transform:translateY(clamp(8px,2vw,20px)); }
+  .card:nth-child(even){ --drop:clamp(8px,2vw,20px); }
 }
 
 /* ---- phones ---- */
