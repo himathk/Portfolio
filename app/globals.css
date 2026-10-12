@@ -848,6 +848,12 @@ body:has(.live__view iframe:hover) .cursor{ opacity:0; }
 .print__hit:focus-visible{ outline:2px solid var(--acid); outline-offset:6px; }
 
 .gallery__end{ flex:0 0 auto; padding-inline:clamp(2rem,8vw,10rem); }
+/* Reduced motion never pins the gallery, so the sideways scroll that walks the
+   track never runs; wrap the prints onto the page instead of clipping them. */
+@media (prefers-reduced-motion:reduce) and (min-width:901px){
+  .gallery__pin{ height:auto; overflow:visible; padding-block:clamp(4rem,8vw,7rem); }
+  .gallery__track{ flex-wrap:wrap; row-gap:clamp(2.5rem,5vw,4rem); transform:none !important; }
+}
 .gallery__end h3{ font-size:clamp(2.4rem,9vw,11rem); color:var(--acid); text-transform:none; letter-spacing:-.02em; line-height:.9; }
 
 /* =========================================================
